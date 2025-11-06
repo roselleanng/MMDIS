@@ -7,11 +7,11 @@
     <div class="background-container flex justify-center items-center ">
       <div class="justify-center items-center flex">
         <div class="flex flex-col justify-center content-center p-5" style="border-radius: 25px; width: 80vw; max-width: 700px; height: 300px;">
-            <div class="flex justify-center mb-6">
-                <button class="button text-2xl rounded h-24 text-white bg-green-800 hover:bg-green-300 hover:text-gray-950 cursor-pointer ease-in-out duration-300  " @click="navigateToFirstPage">NEW APPLICATIONS</button>
+          <div class="flex justify-center mb-6">
+                <button class="button text-2xl font-semibold rounded h-24 text-white bg-green-800 hover:bg-green-300 hover:text-gray-950 cursor-pointer ease-in-out duration-300 font-poppins" @click="navigateToFirstPage">NEW APPLICATIONS</button>
             </div>
             <div class="flex justify-center mb-6">
-                <button class="button text-2xl rounded h-24 text-white bg-green-800 hover:bg-green-300 hover:text-gray-950 cursor-pointer ease-in-out duration-300 " @click="navigateToSecondPage">PERMIT</button>
+                <button class="button text-2xl font-semibold rounded h-24 text-white bg-green-800 hover:bg-green-300 hover:text-gray-950 cursor-pointer ease-in-out duration-300 font-poppins" @click="navigateToSecondPage">PERMIT</button>
             </div>
         </div>
       </div>

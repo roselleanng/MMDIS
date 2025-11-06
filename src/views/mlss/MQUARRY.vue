@@ -33,7 +33,7 @@
     </div>
     <!-- get the total sum of released from the latest year -->
     <div class="flex bg-white justify-between pl-4">
-      <h2 class="flex text-xl font-semibold">The total sum of Mountain Quarry released for the year {{ year }} is {{ totalSum }}.</h2> 
+      <h2 class="flex text-xl font-semibold">There are {{ totalSum }} total sum of released MouTntain Quarry.</h2> 
     </div>
 
     <!-- Search and Add New Data Section -->
@@ -92,6 +92,7 @@
             </th>
             <th scope="col" class="px-6 py-3">Status</th>
             <th scope="col" class="px-6 py-3">Remarks</th>
+            <th scope="col" class="px-6 py-3">Action</th>
           </tr>
         </thead>
         <tbody>
@@ -109,6 +110,10 @@
             <td class="px-6 py-4">{{ formatDate(quarry.released) }}</td>
             <td class="px-6 py-4">{{ quarry.status }}</td>
             <td class="px-6 py-4">{{ quarry.remarks }}</td>
+            <td class="px-6 py-4 flex">
+              <button @click="editEntry(quarry)" class="bg-grey-100 text-white px-3 py-2 rounded mr-2"><img src="../../assets/icons/edit.png" style="width: 30px;"></button>
+              <button @click="deleteEntry(quarry.id)" class="bg-grey-100 text-white px-3 py-2 rounded"><img src="../../assets/icons/remove.png" style="width: 25px;"></button>
+            </td>
           </tr>
         </tbody>
       </table>
@@ -316,6 +321,23 @@ export default {
     },
     formatInput(value) {
       return value ? value.toUpperCase() : '';
+    },
+    editEntry(quarry) {
+      this.newEntry = { ...quarry };
+      this.isEditMode = true;
+      this.editingId = quarry.id;
+      this.showModal = true;
+    },
+    deleteEntry(id) {
+      if (confirm('Are you sure you want to delete this entry?')) {
+        axios.delete(`${API_BASE_URL}/api/csag/${id}`)
+          .then(() => {
+            this.quarry = this.quarry.filter(item => item.id !== id);
+          })
+          .catch(error => {
+            console.error('Error deleting entry:', error.response ? error.response.data : error.message);
+          });
+      }
     },
     updateEntry(field, value) {
       this.newEntry[field] = value.toUpperCase();

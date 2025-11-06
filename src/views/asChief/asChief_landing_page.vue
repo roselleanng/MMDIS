@@ -5,20 +5,47 @@
         <UserBtn />
     </div>
       <div class="background-container flex justify-center items-center ">
-        <div class="justify-center items-center flex">
-          <div class="flex flex-col justify-center content-center p-5" style="border-radius: 25px; width: 80vw; max-width: 700px; height: 300px;">
-              <div class="flex justify-center mb-6">
-                  <button class="button text-2xl rounded h-24 text-white bg-green-800 hover:bg-green-300 hover:text-gray-950 cursor-pointer ease-in-out duration-300  " @click="navigateToMTSS">Monitoring and Technical Services Section</button>
-              </div>
-              <div class="flex justify-center mb-6">
-                  <button class="button text-2xl rounded h-24 text-white bg-green-800 hover:bg-green-300 hover:text-gray-950 cursor-pointer ease-in-out duration-300 " @click="navigateToMTES">Mining Tenement Evaluation Section</button>
-              </div>
-              <div class="flex justify-center mb-6">
-                  <button class="button text-2xl rounded h-24 text-white bg-green-800 hover:bg-green-300 hover:text-gray-950 cursor-pointer ease-in-out duration-300  " @click="navigateToMLSS">Mineral Lands Survey Section</button>
-              </div>
-          </div>
-        </div>
-        
+        <div class="flex flex-row justify-center items-center gap-10 p-5">
+            <!-- Monitoring and Technical Services Section -->
+            <button
+              class="flex flex-col justify-center items-center text-center gap-3 text-xl font-medium rounded-lg h-60 w-72 text-white bg-green-800 hover:bg-green-700 hover:scale-105 hover:shadow-xl transition-all duration-300 ease-in-out"
+              @click="navigateToMTSS">
+              <!-- Icon -->
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-14 w-14" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M3 3v18h18V3H3zm3 14h12M6 10h12M6 6h12"/>
+              </svg>
+              <!-- Text -->
+              <span>Monitoring and Technical Services Section</span>
+            </button>
+
+            <!-- Mining Tenement Evaluation Section -->
+            <button
+              class="flex flex-col justify-center items-center text-center gap-3 text-xl font-medium rounded-lg h-60 w-72 text-white bg-green-800 hover:bg-green-700 hover:scale-105 hover:shadow-xl transition-all duration-300 ease-in-out"
+              @click="navigateToMTES">
+              <!-- Icon -->
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-14 w-14" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M9 12l2 2l4-4m1-5H8a2 2 0 00-2 2v12a2 2 0 002 2h8a2 2 0 002-2V6a2 2 0 00-2-2z"/>
+              </svg>
+              <!-- Text -->
+              <span>Mining Tenement Evaluation Section</span>
+            </button>
+
+            <!-- Mineral Lands Survey Section -->
+            <button
+              class="flex flex-col justify-center items-center text-center gap-3 text-xl font-medium rounded-lg h-60 w-72 text-white bg-green-800 hover:bg-green-700 hover:scale-105 hover:shadow-xl transition-all duration-300 ease-in-out"
+              @click="navigateToMLSS">
+              <!-- Icon -->
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M3 6l9 6l9-6M3 6v12h18V6M3 18l9-6l9 6"/>
+              </svg>
+              <!-- Text -->
+              <span>Mineral Lands Survey Section</span>
+            </button>
+
+            </div>
       </div>
     </template>
     

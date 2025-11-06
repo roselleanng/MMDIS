@@ -32,7 +32,7 @@
     <!-- Total Sum Section -->
     <div class="flex bg-white justify-between pl-4">
       <h2 class="flex text-xl font-semibold">
-        The total sum of Inventory Reports released for the year {{ year }} is {{ totalSum }}.
+        There are {{ totalSum }} total sum of released Inventory Reports.
       </h2>
     </div>
 

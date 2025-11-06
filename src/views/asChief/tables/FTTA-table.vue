@@ -266,7 +266,7 @@ export default {
 .ftta_scrollable {
   margin: 15px;
   box-shadow: 2px 3px 5px rgb(175, 175, 175);
-  max-height: 369px;
+  height: 369px;
   overflow-y: auto;
 }
 

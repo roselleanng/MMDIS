@@ -26,7 +26,7 @@
     <!-- Display the overall total sum -->
     <div class="flex bg-white justify-between pl-4">
       <h2 class="flex text-xl font-semibold">
-        The total sum of Area Status Clearance released for the year {{ year }} is {{ overallTotalSum }}.
+        There are {{ overallTotalSum }} total sum of released Area Status Clearance.
       </h2>
       <pdf/>
     </div>

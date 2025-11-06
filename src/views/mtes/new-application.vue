@@ -5,9 +5,15 @@
   </div>
 
   <div class="background-container flex justify-center items-center">
-    <div class="flex justify-center items-center h-1/4 bg-gray-300 bg-opacity-50 rounded-lg w-1/2">
+    <div
+          class="flex justify-center items-center w-[92%] md:w-[75%] lg:w-[60%] xl:w-[50%]
+              bg-white/30 backdrop-blur-sm border border-white/10
+              rounded-2xl shadow-2xl p-10">
       <div class="new-app-content">
-        <h1 style="font-size: 50px; margin-bottom: 30px; margin-top: -150px;">New Applications</h1>
+        <!-- <h1 style="font-size: 50px; margin-bottom: 30px; margin-top: -150px;">New Applications</h1> -->
+        <h1 class="text-5xl md:text-6xl font-extrabold tracking-wide text-green-900 drop-shadow-lg mb-10 -mt-44">
+                    New Application
+        </h1>
         <div style="display: flex; justify-content: center;">
 
           <div class="button-container1">
@@ -142,8 +148,9 @@ export default {
 }
 
 .button1 {
-  width: 415px;
+  width: 100%;
+  max-width: 415px;
   border: none;
-  transition: background-color 0.3s;
+  transition: all 0.3s ease;
 }
 </style>

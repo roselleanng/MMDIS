@@ -185,6 +185,11 @@ const router = createRouter({
 
 router.beforeEach((to, from, next) => {
     console.log("Navigating to:", to.path);
+    // Clear auth token when navigating to login or root to force re-authentication
+    if (to.path === '/login' || to.path === '/') {
+      localStorage.removeItem('authToken');
+      localStorage.removeItem('username');
+    }
     if (to.matched.some(record => record.meta.requiresAuth)) {
       if (!isAuthenticated()) {
         console.log("Not authenticated. Redirecting to login.");

@@ -18,17 +18,17 @@
               </div>
           </div>
         </div>
-        
+
       </div>
     </template>
-    
+
     <script setup>
     import Header from '../../components/header.vue'
     import UserBtn from '../../components/user-dbbtn.vue'
     </script>
-    
+
     <script>
-    
+
     export default {
       methods: {
         navigateToMTSS() {
@@ -46,25 +46,25 @@
       }
     };
     </script>
-    
+
     <style>
     .title {
       font-size: 2.5rem;
       margin-bottom: 2rem;
     }
-    
+
     .button {
       padding: 0.5rem 1rem;
       width: 1000px;
       border: none;
       flex: 1 2 8rem;
-    
+
     }
-    
+
     .button:hover {
       transition: 0.3s;
     }
-  
+
     .background-container {
     background-image: url('/src/assets/bg-img.jpg');
     background-size: cover;

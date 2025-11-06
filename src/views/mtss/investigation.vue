@@ -24,7 +24,7 @@
       <!-- Total Sum Section -->
       <div class="flex bg-white justify-between pl-4 pt-4">
         <h2 class="flex text-xl font-semibold">
-          The total sum of Investigation Reports released for the year {{ year }} is {{ totalSum }}.
+          There are {{ totalSum }} total sum of released Investigation Reports.
         </h2>
       </div>
   

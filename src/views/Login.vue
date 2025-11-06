@@ -14,11 +14,23 @@
                     <div class="inputfield flex flex-col">
                         <input v-model="form.username" id="username" name="username" type="username"
                             autocomplete="username" placeholder="Username"
-                            class="pl-2 drop-shadow-lg py-2 mx-10 mb-4 w-70 rounded-md" />
-                        <input v-model="form.password" id="password" name="password" type="password"
-                            autocomplete="password" placeholder="Password"
-                            class="pl-2 drop-shadow-lg py-2 mx-10 mb-4 w-70 rounded-md"
-                            @keyup.enter="handleLogin" />
+                            class="pl-2 drop-shadow-lg py-2 mx-10 mb-4 w-80 rounded-md" />
+                        <div class="relative">
+                            <input v-model="form.password" id="password" name="password" :type="passwordType"
+                                autocomplete="password" placeholder="Password"
+                                class="pl-2 drop-shadow-lg py-2 mx-10 mb-4 w-80 rounded-md pr-10"
+                                @keyup.enter="handleLogin" />
+                            <button type="button" @click="togglePasswordVisibility"
+                                class="absolute right-12 top-[35%] transform -translate-y-1/2 text-gray-500 hover:text-gray-700">
+                                <svg v-if="showPassword" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 20 20" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                </svg>
+                                <svg v-else xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L3 3m6.878 6.878L21 21" />
+                                </svg>
+                            </button>
+                        </div>
                     </div>
                 </form>
                 <div class="third flex flex-col items-center pt-16">
@@ -31,7 +43,7 @@
                             </svg>
                         </span>
                         <span v-else>
-                            Login
+                            LOGIN
                         </span>
                     </button>
                 </div>
@@ -43,7 +55,7 @@
 <script setup>
 import taas from '../components/header.vue'
 import mgb from '../assets/icons/mgb.png'
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 import axios from 'axios';
 import { useRouter } from 'vue-router';
 import { API_BASE_URL } from '../config'
@@ -53,12 +65,19 @@ const isUsername = ref(false);
 const pleaseWait = ref(false);
 const submitting = ref(false);
 const error = ref('');
+const showPassword = ref(false);
 
 const router = useRouter();
 const form = ref({
     username: '',
     password: ''
 });
+
+const passwordType = computed(() => showPassword.value ? 'text' : 'password');
+
+const togglePasswordVisibility = () => {
+    showPassword.value = !showPassword.value;
+};
 
 const handleLogin = async () => {
     const passvalid = /^(?=.*[a-z])(?=.*[A-Z])[a-zA-Z0-9-]{7,}$/;
@@ -99,7 +118,7 @@ const handleLogin = async () => {
             case 'asViewer':
                 router.push("/asViewer");
                 break;
-            case 'MMD_Chief':
+            case 'mmd':
                 router.push("/mmd");
                 break;
             case 'mtes':
@@ -136,6 +155,7 @@ const handleLogin = async () => {
     border-top-right-radius: 10px;
     border-bottom-right-radius: 10px;
     height: 450px;
+   
 }
 
 .img123 {
@@ -145,7 +165,10 @@ const handleLogin = async () => {
     border-bottom-left-radius: 10px;
 }
 
+
 .buttonlogin {
     border-radius: 20px;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-weight: bold;
 }
 </style>

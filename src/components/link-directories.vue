@@ -2,7 +2,27 @@
   <!-- drawer init and show -->
   <div class="text-center flex ml-4">
     <button
-      class="fixed text-black bg-amber-400 hover:bg-amber-100 font-medium rounded-lg text-sm px-5 py-2.5 focus:outline-none"
+      v-if="$route.path !== '/login' && $route.path !== '/' && $route.path !== '/asViewer' && $route.path !== '/mmd'"
+      class="text-black bg-amber-400 hover:bg-amber-100 font-medium rounded-lg text-sm px-5 py-2.5 focus:outline-none mr-2"
+      type="button"
+      @click="goBack"
+      aria-label="Back"
+    >
+      <svg
+        class="w-10 h-10"
+        fill="currentColor"
+        viewBox="0 0 20 20"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <path
+          fill-rule="evenodd"
+          d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z"
+          clip-rule="evenodd"
+        ></path>
+      </svg>
+    </button>
+    <button
+      class="text-black bg-amber-400 hover:bg-amber-100 font-medium rounded-lg text-sm px-5 py-2.5 focus:outline-none"
       type="button"
       @click="toggleDrawer"
       aria-controls="drawer-navigation"
@@ -199,6 +219,9 @@ export default {
   methods: {
     toggleDrawer() {
       this.isDrawerVisible = !this.isDrawerVisible;
+    },
+    goBack() {
+      this.$router.go(-1);
     },
   },
 };

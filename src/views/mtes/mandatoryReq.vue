@@ -583,6 +583,7 @@ import UserBtn from '../../components/user-dbbtn.vue'
 import imagees from '../../components/MTES/modals/imguploads.vue'
 import faxx from '../mtes/factsheet.vue'
 import { API_BASE_URL } from '../../config'
+import axios from 'axios'
 
 </script>
 
@@ -811,40 +812,38 @@ export default {
       } catch (error) {
         console.error('Error fetching details:', error);
       }
-      
+
       try {
         const overallstatus = await axios.get(`${API_BASE_URL}/get_mtsrstatus`);
         const filteredoverall = overallstatus.data.find(req => req.id_reference === parseInt(this.$route.params.detail_id));
-        
-        this.overallStatus = filteredoverall.overallstatus
+
+        this.overallStatus = this.filterLoremIpsum(filteredoverall.overallstatus);
       } catch (error) {
         console.error('Error fetching details:', error);
       }
 
       try {
-        const remarks = await axios.get(`${API_BASE_URL}/get_remarks`);
-        const filteredremarks = remarks.data.filter(req => req.id_reference == this.$route.params.detail_id);
+  const { data = [] } = await axios.get(`${API_BASE_URL}/get_remarks`);
+  const row = data.find(req => String(req.id_reference) === String(this.$route.params.detail_id)) || {};
 
-        this.remarks.textInput1 = filteredremarks[0].input1 !== null ? filteredremarks[0].input1 : '';
-        this.remarks.textInput2 = filteredremarks[0].input2 !== null ? filteredremarks[0].input2 : '';
-        this.remarks.textInput3 = filteredremarks[0].input3 !== null ? filteredremarks[0].input3 : '';
-        this.remarks.textInput4 = filteredremarks[0].input4 !== null ? filteredremarks[0].input4 : '';
-        this.remarks.textInput5 = filteredremarks[0].input5 !== null ? filteredremarks[0].input5 : '';
-
-      } catch (error) {
-        console.error('Error fetching details:', error);
-      }
+  for (let i = 1; i <= 5; i++) {
+    const raw = row[`input${i}`] ?? '';
+    this.remarks[`textInput${i}`] = this.filterLoremIpsum(String(raw));
+  }
+} catch (error) {
+  console.error('Error fetching details:', error);
+}
 
       try {
         const requirements = await axios.get(`${API_BASE_URL}/get_recommendation`);
         const filteredrequirements = requirements.data.find(req => req.id_reference == this.$route.params.detail_id);
 
-        this.recommendation.textInput1 = filteredrequirements.input1 !== null ? filteredrequirements.input1 : '';
-        this.recommendation.textInput2 = filteredrequirements.input2 !== null ? filteredrequirements.input2 : '';
-        this.recommendation.textInput3 = filteredrequirements.input3 !== null ? filteredrequirements.input3 : '';
-        this.recommendation.textInput4 = filteredrequirements.input4 !== null ? filteredrequirements.input4 : '';
-        this.recommendation.textInput5 = filteredrequirements.input5 !== null ? filteredrequirements.input5 : '';
-      
+        this.recommendation.textInput1 = this.filterLoremIpsum(filteredrequirements.input1 !== null ? filteredrequirements.input1 : '');
+        this.recommendation.textInput2 = this.filterLoremIpsum(filteredrequirements.input2 !== null ? filteredrequirements.input2 : '');
+        this.recommendation.textInput3 = this.filterLoremIpsum(filteredrequirements.input3 !== null ? filteredrequirements.input3 : '');
+        this.recommendation.textInput4 = this.filterLoremIpsum(filteredrequirements.input4 !== null ? filteredrequirements.input4 : '');
+        this.recommendation.textInput5 = this.filterLoremIpsum(filteredrequirements.input5 !== null ? filteredrequirements.input5 : '');
+
       } catch (error) {
         console.error('Error fetching reco details:', error);
       }
@@ -906,28 +905,32 @@ export default {
         console.error('Error fetching images:', error);
       }
     },
+    filterLoremIpsum(text) {
+      return text;
+    },
+
     async update() {
       try {
         alert('An update has been initiated.');
-    
+
         // Collecting FormData
         const formDataStatus = new FormData();
         formDataStatus.append('id_reference', this.$route.params.detail_id);
         formDataStatus.append('overallstatus', this.overallStatus);
-    
+
         const formDataRemarks = new FormData();
         const formDataRecommendation = new FormData();
         formDataRemarks.append('id_reference', this.$route.params.detail_id);
         formDataRecommendation.append('id_reference', this.$route.params.detail_id);
-    
+
         for (let i = 1; i <= 5; i++) {
           formDataRemarks.append(`input${i}`, this.remarks[`textInput${i}`]);
           formDataRecommendation.append(`input${i}`, this.recommendation[`textInput${i}`]);
         }
-    
+
         const formDataImages = new FormData();
         formDataImages.append('id_reference', this.$route.params.detail_id);
-    
+
         Object.entries(this.imagesFiles).forEach(([key, files]) => {
           if (Array.isArray(files) && files.length) {
             files.forEach(file => {
@@ -938,10 +941,10 @@ export default {
             });
           }
         });
-    
+
         const formDataUploads = new FormData();
         formDataUploads.append('id_reference', this.$route.params.detail_id);
-    
+
         if (this.uploadFiles) {
           Object.entries(this.uploadFiles).forEach(([key, files]) => {
             if (Array.isArray(files)) {
@@ -953,7 +956,7 @@ export default {
             }
           });
         }
-    
+
         // Execute API calls in parallel
         await Promise.all([
           axios.post(`${API_BASE_URL}/update_mtsrstatus/${this.$route.params.detail_id}`, formDataStatus),
@@ -962,7 +965,7 @@ export default {
           axios.post(`${API_BASE_URL}/update_images/${this.$route.params.detail_id}`, formDataImages, { headers: { 'Content-Type': 'multipart/form-data' } }),
           axios.post(`${API_BASE_URL}/update_uploads/${this.$route.params.detail_id}`, formDataUploads)
         ]);
-    
+
         console.log('All updates completed successfully.');
         window.location.reload(); // Refresh page only once after all requests complete
       } catch (error) {

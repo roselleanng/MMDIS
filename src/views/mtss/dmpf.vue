@@ -24,7 +24,7 @@
     <!-- Total Sum Section -->
     <div class="flex bg-white justify-between pl-4 pt-4">
       <h2 class="flex text-xl font-semibold">
-        The total sum of Declaration of Mine Project Feasibility released for the year {{ year }} is {{ totalSum }}.
+        There are {{ totalSum }} total sum of released Declaration of Mine Project Feasibility.
       </h2>
     </div>
 
