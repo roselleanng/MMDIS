@@ -27,6 +27,7 @@
           <PieChart :provinceData="provinceData" />
         </div>
       </div>
+
     </div>
 
     <!-- Total Sum Section -->
@@ -36,21 +37,25 @@
       </h2>
     </div>
 
-    <!-- Search and Add Section -->
-    <div class="flex justify-between mt-8">
-      <!-- Search Input Container -->
-      <div class="flex w-2/5 ml-2">
-        <!-- Search Icon -->
-        <div class="flex items-center bg-blue-100 rounded-l-lg px-3 pointer-events-none">
-          <svg class="w-8 h-8 text-gray-500" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 20">
-            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m19 19-4-4m0-7A7 7 0 1 1 1 8a7 7 0 0 1 14 0Z" />
-          </svg>
+    <!-- Search and Add New Data Section -->
+    <div class="flex mt-8 justify-between">
+      <div class="flex w-2/5">
+        <div class="rounded-l-lg content-center bg-blue-100 items-center pe-3 ml-5 ps-3 pointer-events-none">
+            <svg class="w-8 h-8 text-gray-500" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 20">
+              <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m19 19-4-4m0-7A7 7 0 1 1 1 8a7 7 0 0 1 14 0Z" />
+            </svg>
         </div>
-        <!-- Search Input Field -->
-        <input v-model="searchQuery" @input="debouncedSearch" type="search" id="default-search" class="block w-full p-4 text-sm text-gray-900 border border-gray-300 rounded-r-lg bg-gray-50 focus:ring-blue-500 focus:border-blue-500" placeholder="Search month and location ..." required />
+        <div class="w-full">
+          <label for="default-search" class="mb-2 text-sm font-medium text-gray-900 sr-only">Search</label>
+          <div class="">
+            <input v-model="searchQuery" @input="debouncedSearch" type="search" id="default-search" class="block w-full p-4 text-sm text-gray-900 border border-gray-300 rounded-r-lg bg-gray-50 focus:ring-blue-500 focus:border-blue-500" placeholder="Search name, province, city, barangay, river, status or remarks..." required />
+          </div>
+        </div>
       </div>
-      <!-- Add Button -->
-      <AddBtn @click="showModal = true" />
+      <div class="flex content-center">
+        <button @click="downloadSummary" class="mr-4 bg-blue-400 hover:bg-blue-100 p-2 text-white rounded-lg">Download Summary</button>
+        <button @click="showModal = true" class="mr-4 bg-amber-400 hover:bg-amber-100 p-2 text-black rounded-lg">Add New Data</button>
+      </div>
     </div>
 
     <!-- Table Section -->
@@ -58,6 +63,7 @@
       <table class="w-full text-sm text-left rtl:text-right text-gray-500">
         <thead class="text-xs text-gray-700 uppercase bg-gray-50">
           <tr>
+            <th scope="col" class="px-6 py-3">No.</th>
             <th scope="col" class="px-6 py-3 cursor-pointer" @click="sortByDate('month')">
               Month
               <span v-if="sortKey === 'month'" aria-label="Sorted ascending">
@@ -65,16 +71,16 @@
                 <template v-else>▼</template>
               </span>
             </th>
-            <th scope="col" class="px-6 py-3">No.</th>
-            <th scope="col" class="px-6 py-3 cursor-pointer" @click="sortByDate('location')">
-              Location
-              <span v-if="sortKey === 'location'" aria-label="Sorted ascending">
+            <th scope="col" class="px-6 py-3">Province</th>
+            <th scope="col" class="px-6 py-3">City/Municipality</th>
+            <th scope="col" class="px-6 py-3">Barangay</th>
+            <th scope="col" class="px-6 py-3">Sitio</th>
+            <th scope="col" class="px-6 py-3 cursor-pointer" @click="sortByDate('travel_date')">
+              Travel Date
+              <span v-if="sortKey === 'travel_date'" aria-label="Sorted ascending">
                 <template v-if="sortOrder === 'asc'">▲</template>
                 <template v-else>▼</template>
               </span>
-            </th>
-            <th scope="col" class="px-6 py-3">
-              Travel Date
             </th>
             <th scope="col" class="px-6 py-3 cursor-pointer" @click="sortByDate('report_date')">
               Report Date
@@ -104,9 +110,12 @@
         </thead>
         <tbody>
           <tr v-for="(entry, index) in filteredEntries" :key="entry.id" class="bg-white border-b">
-            <td class="px-6 py-4">{{ entry.month }}</td>
             <td class="px-6 py-4">{{ index + 1 }}</td>
-            <td class="px-6 py-4">{{ entry.location }}</td>
+            <td class="px-6 py-4">{{ entry.month }}</td>
+            <td class="px-6 py-4">{{ entry.province }}</td>
+            <td class="px-6 py-4">{{ entry.city_municipality }}</td>
+            <td class="px-6 py-4">{{ entry.barangay }}</td>
+            <td class="px-6 py-4">{{ entry.sitio }}</td>
             <td class="px-6 py-4">{{ entry.travel_date_from }} to {{ entry.travel_date_to }}</td>
             <td class="px-6 py-4">{{ entry.report_date }}</td>
             <td class="px-6 py-4">{{ entry.transmittal_date }}</td>
@@ -140,9 +149,11 @@
           <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
             <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
               <div class="sm:flex sm:items-start">
-                <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
-                  <div class="mt-2 flex justify-between">
-                    <p class="mr-5">Month:</p>
+                <div class="mt-2 space-y-3">
+                  <div class="grid grid-cols-1 sm:grid-cols-[12rem_1fr] gap-1 sm:items-center">
+                    <label class="w-48">
+                      Month:<span class="text-red-500">*</span>
+                    </label>
                     <select v-model="newEntry.month" class="w-72 bg-orange-100 rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
                       <option>JANUARY</option>
                       <option>FEBRUARY</option>
@@ -158,43 +169,77 @@
                       <option>DECEMBER</option>
                     </select>
                   </div>
-                  <div class="mt-2 flex justify-between">
-                    <p class="mr-5">Location:</p>
-                    <select v-model="newEntry.location" class="w-72 bg-orange-100 rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
+                  <div class="grid grid-cols-1 sm:grid-cols-[12rem_1fr] gap-1 sm:items-center">
+                    <label class="w-48">
+                      Province<span class="text-red-500">*</span>
+                    </label>
+                    <select v-model="newEntry.province" class="w-72 bg-orange-100 rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
                       <option>BUKIDNON</option>
                       <option>CAMUIGUIN</option>
                       <option>LANAO DEL NORTE</option>
                       <option>MISAMIS OCCIDENTAL</option>
                       <option>MISAMIS ORIENTAL</option>
-                      <option>CAGAYAN DE ORO CITY</option>
-                      <option>ILIGAN CITY</option>
                     </select>
                   </div>
-                  <div class="mt-2 flex justify-between">
-                    <p class="mr-5">Travel Date:</p>
+                  <div class="grid grid-cols-1 sm:grid-cols-[12rem_1fr] gap-1 sm:items-center">
+                    <label class="w-48">
+                      City/Municipality:<span class="text-red-500">*</span>
+                    </label>
+                    <input v-model="newEntry.city_municipality" type="text" class="w-72 bg-orange-100 rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50" />
+                  </div>
+                  <div class="grid grid-cols-1 sm:grid-cols-[12rem_1fr] gap-1 sm:items-center">
+                    <label class="w-48">
+                      Barangay:<span class="text-red-500">*</span>
+                    </label>
+                    <input v-model="newEntry.barangay" type="text" class="w-72 bg-orange-100 rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50" />
+                  </div>
+                  <div class="grid grid-cols-1 sm:grid-cols-[12rem_1fr] gap-1 sm:items-center">
+                    <label class="w-48">
+                      Sitio:<span class="text-red-500"></span>
+                    </label>
+                    <input v-model="newEntry.sitio" type="text" class="w-72 bg-orange-100 rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50" />
+                  </div>
+                  <div class="grid grid-cols-1 sm:grid-cols-[12rem_1fr] gap-1 sm:items-center">
+                    <label class="w-48">
+                      Travel Date:<span class="text-red-500"></span>
+                    </label>
                     <input v-model="newEntry.travel_date_from" type="date" class="pl-1 pr-1 bg-orange-100 rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
                     <p class="">to</p>
                     <input v-model="newEntry.travel_date_to" type="date" class="pl-1 pr-1 bg-orange-100 rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
                   </div>
-                  <div class="mt-2 flex justify-between">
-                    <p class="mr-5">Report Date:</p>
+                  <div class="grid grid-cols-1 sm:grid-cols-[12rem_1fr] gap-1 sm:items-center">
+                    <label class="w-48">
+                      Report Date:<span class="text-red-500"></span>
+                    </label>
+                   
                     <input v-model="newEntry.report_date" type="date" class="pl-1 pr-1 bg-orange-100 rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
                   </div>
-                  <div class="mt-2 flex justify-between">
-                    <p class="mr-5">Transmittal Date:</p>
+                  <div class="grid grid-cols-1 sm:grid-cols-[12rem_1fr] gap-1 sm:items-center">
+                    <label class="w-48">
+                     Transmittal Date:<span class="text-red-500"></span>
+                    </label>
+                  
                     <input v-model="newEntry.transmittal_date" type="date" class="pl-1 pr-1 bg-orange-100 rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
                   </div>
-                  <div class="mt-2 flex justify-between">
-                    <p class="mr-5">Released Date:</p>
+                  <div class="grid grid-cols-1 sm:grid-cols-[12rem_1fr] gap-1 sm:items-center">
+                    <label class="w-48">
+                      Released Date:<span class="text-red-500"></span>
+                    </label>
+                 
                     <input v-model="newEntry.released_date" type="date" class="pl-1 pr-1 bg-orange-100 rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
                   </div>
-                  <div class="mt-2 flex justify-between">
-                    <p class="mr-5">MMD Personnel:</p>
+                  <div class="grid grid-cols-1 sm:grid-cols-[12rem_1fr] gap-1 sm:items-center">
+                    <label class="w-48">
+                      MMD Personnel:<span class="text-red-500"></span>
+                    </label>
+                  
                     <input v-model="newEntry.mmd_personnel" type="text" class="w-72 bg-orange-100 rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
                   </div>
-                  <div class="mt-2 flex justify-between">
-                    <p class="mr-5">Proof of MOV:</p>
-                    <input ref="MOVpdf" type="file" class="w-72 bg-orange-100 rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
+                  <div class="grid grid-cols-1 sm:grid-cols-[12rem_1fr] gap-1 sm:items-center">
+                    <label class="w-48">
+                     Proof of MOV:<span class="text-red-500"></span>
+                    </label>
+                    <input ref="MOVpdf" type="file" accept="application/pdf" @change="handleFileUpload($event, 'MOVpdf')" class="w-72 bg-orange-100 rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
                   </div>
                 </div>
               </div>
@@ -246,8 +291,8 @@
                     </select>
                   </div>
                   <div class="mt-2 flex justify-between">
-                    <p class="mr-5">Location:</p>
-                    <select v-model="updateEntry.location" class="w-72 bg-orange-100 rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
+                    <p class="mr-5">Province:</p>
+                    <select v-model="updateEntry.province" class="w-72 bg-orange-100 rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
                       <option>BUKIDNON</option>
                       <option>CAMUIGUIN</option>
                       <option>LANAO DEL NORTE</option>
@@ -256,6 +301,18 @@
                       <option>CAGAYAN DE ORO CITY</option>
                       <option>ILIGAN CITY</option>
                     </select>
+                  </div>
+                  <div class="mt-2 flex justify-between">
+                    <p class="mr-5">City/Municipality:</p>
+                    <input v-model="updateEntry.city_municipality" type="text" class="w-72 bg-orange-100 rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50" />
+                  </div>
+                  <div class="mt-2 flex justify-between">
+                    <p class="mr-5">Barangay:</p>
+                    <input v-model="updateEntry.barangay" type="text" class="w-72 bg-orange-100 rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50" />
+                  </div>
+                  <div class="mt-2 flex justify-between">
+                    <p class="mr-5">Sitio:</p>
+                    <input v-model="updateEntry.sitio" type="text" class="w-72 bg-orange-100 rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50" />
                   </div>
                   <div class="mt-2 flex justify-between">
                     <p class="mr-5">Travel Date:</p>
@@ -364,10 +421,10 @@ export default {
       this.inventory.forEach(inventory => {
         const Year = new Date(inventory.released_date);
         if (Year.getFullYear() === latestYear) {
-          if (!provinceTotals[inventory.location]) {
-            provinceTotals[inventory.location] = 0;
+          if (!provinceTotals[inventory.province]) {
+            provinceTotals[inventory.province] = 0;
           }
-          provinceTotals[inventory.location]++;
+          provinceTotals[inventory.province]++;
         }
       });
 
@@ -376,13 +433,17 @@ export default {
     year() {
       return new Date().getFullYear();
     }
+    
   },
   methods: {
     getEmptyEntry() {
       return {
         id: '',
         month: '',
-        location: '',
+        province: '',
+        city_municipality: '',
+        barangay: '',
+        sitio: '',
         travel_date_from: '',
         travel_date_to: '',
         report_date: '',
@@ -402,6 +463,16 @@ export default {
         });
     },
     addNewEntry() {
+
+      // Client-side validation for required fields
+      const requiredFields = ['month', 'province', 'city_municipality', 'barangay', 'sitio', 'travel_date_from', 'travel_date_to', 'report_date', 'transmittal_date', 'released_date', 'mmd_personnel'];
+      for (const field of requiredFields) {
+        if (!this.newEntry[field]) {
+          alert(`The field "${field.replace(/_/g, ' ')}" is required.`);
+          return;
+        }
+      }
+      
       const fileInput = this.$refs.MOVpdf.files[0] || null; // Use null if no file is selected
 
       if (fileInput && fileInput.size > 5 * 1024 * 1024) { // 5MB limit
@@ -411,7 +482,10 @@ export default {
 
       const formData = new FormData();
       formData.append('month', this.newEntry.month);
-      formData.append('location', this.newEntry.location);
+      formData.append('province', this.newEntry.province);
+      formData.append('city_municipality', this.newEntry.city_municipality);
+      formData.append('barangay', this.newEntry.barangay);
+      formData.append('sitio', this.newEntry.sitio);
       formData.append('travel_date_from', this.newEntry.travel_date_from);
       formData.append('travel_date_to', this.newEntry.travel_date_to);
       formData.append('report_date', this.newEntry.report_date);
@@ -541,16 +615,21 @@ export default {
       }
 
       if (this.file) {
-    // Validate file type
-    if (this.file.type !== 'application/pdf') {
-      alert('Only PDF files are allowed.');
-      return;
-    }}
+        // Validate file type
+        if (this.file.type !== 'application/pdf') {
+          alert('Only PDF files are allowed.');
+          return;
+        }
+    } 
+
 
       // const formData = this.updateEntry;
       const formData = new FormData();
       formData.append('month', this.updateEntry.month);
-      formData.append('location', this.updateEntry.location);
+      formData.append('province', this.updateEntry.province);
+      formData.append('city_municipality', this.updateEntry.city_municipality);
+      formData.append('barangay', this.updateEntry.barangay);
+      formData.append('sitio', this.updateEntry.sitio);
       formData.append('travel_date_from', this.updateEntry.travel_date_from);
       formData.append('travel_date_to', this.updateEntry.travel_date_to);
       formData.append('report_date', this.updateEntry.report_date);
@@ -558,7 +637,7 @@ export default {
       formData.append('released_date', this.updateEntry.released_date);
       formData.append('mmd_personnel', this.updateEntry.mmd_personnel);
 
-    // Append file if it exists
+    // Append the file if selected
     if (this.file) {
       formData.append('MOVpdf', this.file);
     }
@@ -576,6 +655,61 @@ export default {
       console.error('Error updating entry:', error);
       alert('Failed to update the entry.');
     });
+    },
+    downloadSummary() {
+      const data = this.filteredEntries;
+      if (data.length === 0) {
+        alert('No data to download.');
+        return;
+      }
+
+      // Define CSV headers
+      const headers = [
+        'No.',
+        'Month',
+        'Province',
+        'City/Municipality',
+        'Barangay',
+        'Sitio',
+        'Travel Date From',
+        'Travel Date To',
+        'Report Date',
+        'Transmittal Date',
+        'Released Date',
+        'MMD Personnel'
+      ];
+
+      // Convert data to CSV rows
+      const csvRows = data.map((entry, index) => [
+        index + 1,
+        entry.month,
+        entry.province,
+        entry.city_municipality,
+        entry.barangay,
+        entry.sitio,
+        entry.travel_date_from,
+        entry.travel_date_to,
+        entry.report_date,
+        entry.transmittal_date,
+        entry.released_date,
+        entry.mmd_personnel
+      ]);
+
+      // Combine headers and rows
+      const csvContent = [headers, ...csvRows]
+        .map(row => row.map(field => `"${field || ''}"`).join(','))
+        .join('\n');
+
+      // Create and download the file
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement('a');
+      const url = URL.createObjectURL(blob);
+      link.setAttribute('href', url);
+      link.setAttribute('download', `inventory_summary_${new Date().toISOString().split('T')[0]}.csv`);
+      link.style.visibility = 'hidden';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
     },
   },
   mounted() {

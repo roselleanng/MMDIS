@@ -53,27 +53,32 @@
             <th scope="col" class="px-6 py-3">No.</th>
             <th scope="col" class="px-6 py-3">Client</th>
             <th scope="col" class="px-6 py-3">Certification No.</th>
-            <th scope="col" class="px-6 py-3 cursor-pointer" @click="sortByDate('received_ord')">
+            <th scope="col" class="px-6 py-3">Kind of Sample</th>
+            <th scope="col" class="px-6 py-3">Weight</th>
+            <th scope="col" class="px-6 py-3">Source / Origin</th>
+            <th scope="col" class="px-6 py-3">Destination</th>
+
+            <th v-if="!hideColumns.received_ord" scope="col" class="px-6 py-3 cursor-pointer" @click="sortByDate('received_ord')">
               Date Received by ORD
               <span v-if="sortKey === 'received_ord'" aria-label="Sorted ascending">
                 <template v-if="sortOrder === 'asc'">▲</template>
                 <template v-else>▼</template>
               </span>
             </th>
-            <th scope="col" class="px-6 py-3 cursor-pointer" @click="sortByDate('received_mmd')">
+            <th v-if="!hideColumns.received_mmd" scope="col" class="px-6 py-3 cursor-pointer" @click="sortByDate('received_mmd')">
               Date Received by MMD
               <span v-if="sortKey === 'received_mmd'" aria-label="Sorted ascending">
                 <template v-if="sortOrder === 'asc'">▲</template>
                 <template v-else>▼</template>
               </span>
             </th>
-            <th scope="col" class="px-6 py-3 cursor-pointer" @click="sortByDate('payment_date')">Payment Date
+            <th v-if="!hideColumns.payment_date" scope="col" class="px-6 py-3 cursor-pointer" @click="sortByDate('payment_date')">Payment Date
               <span v-if="sortKey === 'payment_date'" aria-label="Sorted ascending">
                 <template v-if="sortOrder === 'asc'">▲</template>
                 <template v-else>▼</template>
               </span>
             </th>
-            <th scope="col" class="px-6 py-3 cursor-pointer" @click="sortByDate('sample_inspection')">Sample Inspection
+            <th v-if="!hideColumns.sample_inspection" scope="col" class="px-6 py-3 cursor-pointer" @click="sortByDate('sample_inspection')">Sample Inspection
               <span v-if="sortKey === 'sample_inspection'" aria-label="Sorted ascending">
                 <template v-if="sortOrder === 'asc'">▲</template>
                 <template v-else>▼</template>
@@ -96,10 +101,14 @@
             <td class="px-6 py-4">{{ index + 1 }}</td>
             <td class="px-6 py-4" style="width: 300px;">{{ entry.client }}</td>
             <td class="px-6 py-4">{{ entry.certification_no }}</td>
-            <td class="px-6 py-4">{{ entry.received_ord }}</td>
-            <td class="px-6 py-4">{{ entry.received_mmd }}</td>
-            <td class="px-6 py-4">{{ entry.payment_date }}</td>
-            <td class="px-6 py-4">{{ entry.sample_inspection }}</td>
+            <td class="px-6 py-4">{{ entry.kind_of_sample }}</td>
+            <td class="px-6 py-4">{{ entry.weight }}</td>
+            <td class="px-6 py-4">{{ entry.source_origin }}</td>
+            <td class="px-6 py-4">{{ entry.destination }}</td>
+            <td v-if="!hideColumns.received_ord" class="px-6 py-4">{{ entry.received_ord }}</td>
+            <td v-if="!hideColumns.received_mmd" class="px-6 py-4">{{ entry.received_mmd }}</td>
+            <td v-if="!hideColumns.payment_date" class="px-6 py-4">{{ entry.payment_date }}</td>
+            <td v-if="!hideColumns.sample_inspection" class="px-6 py-4">{{ entry.sample_inspection }}</td>
             <td class="px-6 py-4">{{ entry.issued }}</td>
             <td class="px-6 py-4">{{ entry.mmd_personnel }}</td>
             <td class="px-6 py-4 text-center">
@@ -130,40 +139,70 @@
           <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-xl sm:w-full">
             <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
               <div class="sm:flex sm:items-start">
-                <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
-                  <div class="mt-2 flex justify-between">
-                    <p class="mr-5">Client:</p>
+                <div class="mt-2 space-y-3">
+                  <div class="grid grid-cols-1 sm:grid-cols-[12rem_1fr] gap-1 sm:items-center">
+                    <label class="w-48">
+                      Client:<span class="text-red-500">*</span>
+                    </label>
                     <input v-model="newEntry.client" type="text" class="w-72 bg-orange-100 rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
                   </div>
-                  <div class="mt-2 flex justify-between">
-                    <p class="mr-5">Certification No.:</p>
+                <div class="grid grid-cols-1 sm:grid-cols-[12rem_1fr] gap-1 sm:items-center">
+                    <label class="w-48">
+                    Certification No:<span class="text-red-500">*</span>
+                    </label>
                     <input v-model="newEntry.certification_no" type="text" class="w-72 bg-orange-100 rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
                   </div>
-                  <div class="mt-2 flex justify-between">
+                  <div class="grid grid-cols-1 sm:grid-cols-[12rem_1fr] gap-1 sm:items-center">
+                    <label class="w-48">
+                      Kind of Sample:<span class="text-red-500">*</span>
+                    </label>
+                    <input v-model="newEntry.kind_of_sample" type="text" class="w-72 bg-orange-100 rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
+                  </div>
+                  <div class="grid grid-cols-1 sm:grid-cols-[12rem_1fr] gap-1 sm:items-center">
+                    <label class="w-48">
+                      Weight:<span class="text-red-500">*</span>
+                    </label>
+                    <input v-model="newEntry.weight" type="text" class="w-72 bg-orange-100 rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
+                  </div>
+                  <div class="grid grid-cols-1 sm:grid-cols-[12rem_1fr] gap-1 sm:items-center">
+                    <label class="w-48">
+                      Source / Origin:<span class="text-red-500">*</span>
+                    </label>
+                    <input v-model="newEntry.source_origin" type="text" class="w-72 bg-orange-100 rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
+                  </div>
+                  <div class="grid grid-cols-1 sm:grid-cols-[12rem_1fr] gap-1 sm:items-center">
+                    <label class="w-48">
+                      Destination:<span class="text-red-500">*</span>
+                    </label>
+                    <input v-model="newEntry.destination" type="text" class="w-72 bg-orange-100 rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
+                  </div>
+                  <div class="grid grid-cols-1 sm:grid-cols-[12rem_1fr] gap-1 sm:items-center">
                     <p class="mr-5">Date Received By ORD:</p>
                     <input v-model="newEntry.received_ord" type="date" class="pl-1 pr-1 bg-orange-100 rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
                   </div>
-                  <div class="mt-2 flex justify-between">
+                  <div class="grid grid-cols-1 sm:grid-cols-[12rem_1fr] gap-1 sm:items-center">
                     <p class="mr-5">Date Received By MMD:</p>
                     <input v-model="newEntry.received_mmd" type="date" class="pl-1 pr-1 bg-orange-100 rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
                   </div>
-                  <div class="mt-2 flex justify-between">
+                  <div class="grid grid-cols-1 sm:grid-cols-[12rem_1fr] gap-1 sm:items-center">
                     <p class="mr-5">Payment Date:</p>
                     <input v-model="newEntry.payment_date" type="date" class="pl-1 pr-1 bg-orange-100 rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
                   </div>
-                  <div class="mt-2 flex justify-between">
+                  <div class="grid grid-cols-1 sm:grid-cols-[12rem_1fr] gap-1 sm:items-center">
                     <p class="mr-5">Sample Inspection:</p>
                     <input v-model="newEntry.sample_inspection" type="date" class="pl-1 pr-1 bg-orange-100 rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
                   </div>
-                  <div class="mt-2 flex justify-between">
-                    <p class="mr-5">Date Issued:</p>
+                  <div class="grid grid-cols-1 sm:grid-cols-[12rem_1fr] gap-1 sm:items-center">
+                    <label class="w-48">
+                      Date Issued:<span class="text-red-500">*</span>
+                    </label>
                     <input v-model="newEntry.issued" type="date" class="pl-1 pr-1 bg-orange-100 rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
                   </div>
-                  <div class="mt-2 flex justify-between">
+                  <div class="grid grid-cols-1 sm:grid-cols-[12rem_1fr] gap-1 sm:items-center">
                     <p class="mr-5">MMD Personnel:</p>
                     <input v-model="newEntry.mmd_personnel" type="text" class="w-72 bg-orange-100 rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
                   </div>
-                  <div class="mt-2 flex justify-between">
+                  <div class="grid grid-cols-1 sm:grid-cols-[12rem_1fr] gap-1 sm:items-center">
                     <p class="mr-5">Proof of MOV Uploaded:</p>
                     <input ref="MOVpdf" type="file" class="w-72 bg-orange-100 rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
                   </div>
@@ -203,6 +242,22 @@
                 <div class="mt-2 flex justify-between">
                   <p class="mr-5">Certification No.:</p>
                   <input v-model="updateEntry.certification_no" type="text" class="w-72 bg-orange-100 rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
+                </div>
+                <div class="mt-2 flex justify-between">
+                  <p class="mr-5">Kind of Sample:</p>
+                  <input v-model="updateEntry.kind_of_sample" type="text" class="w-72 bg-orange-100 rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
+                </div>
+                <div class="mt-2 flex justify-between">
+                  <p class="mr-5">Weight:</p>
+                  <input v-model="updateEntry.weight" type="text" class="w-72 bg-orange-100 rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
+                </div>
+                <div class="mt-2 flex justify-between">
+                  <p class="mr-5">Source / Origin:</p>
+                  <input v-model="updateEntry.source_origin" type="text" class="w-72 bg-orange-100 rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
+                </div>
+                <div class="mt-2 flex justify-between">
+                  <p class="mr-5">Destination:</p>
+                  <input v-model="updateEntry.destination" type="text" class="w-72 bg-orange-100 rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
                 </div>
                 <div class="mt-2 flex justify-between">
                   <p class="mr-5">Date Received By ORD:</p>
@@ -274,9 +329,18 @@ export default {
       isUpdateModalOpen: false, // State to track if the update modal is open
       updateEntry: this.getEmptyEntry(), // Object to store the entry being updated
       debouncedSearch: this.debounce(this.search, 300), // Debounced search function
-      file: null
+      file: null,
+
+      // Add hideColumns object to control visibility of specific columns
+      hideColumns: {
+        received_ord: true,
+        received_mmd: true,
+        payment_date: true,
+        sample_inspection: true,
+      },
     };
   },
+  
 
   computed: {
     filteredEntries() {
@@ -312,6 +376,10 @@ export default {
         no: '',
         client: '',
         certification_no: '',
+        kind_of_sample: '',
+        weight: '',
+        source_origin: '',
+        destination: '',
         received_ord: '',
         received_mmd: '',
         payment_date: '',
@@ -329,6 +397,7 @@ export default {
         })
         .catch(error => {
           console.error('Error fetching monitoringOSTC:', error);
+          alert('Failed to load data. Please check if the backend server is running.');
         });
     },
 
@@ -343,6 +412,10 @@ export default {
       const formData = new FormData();
       formData.append('client', this.newEntry.client);
       formData.append('certification_no', this.newEntry.certification_no);
+      formData.append('kind_of_sample', this.newEntry.kind_of_sample);
+      formData.append('weight', this.newEntry.weight);
+      formData.append('source_origin', this.newEntry.source_origin);
+      formData.append('destination', this.newEntry.destination);
       formData.append('received_ord', this.newEntry.received_ord);
       formData.append('received_mmd', this.newEntry.received_mmd);
       formData.append('payment_date', this.newEntry.payment_date);
@@ -408,6 +481,10 @@ export default {
       const formData = new FormData();
       formData.append('client', this.updateEntry.client);
       formData.append('certification_no', this.updateEntry.certification_no);
+      formData.append('kind_of_sample', this.updateEntry.kind_of_sample);
+      formData.append('weight', this.updateEntry.weight);
+      formData.append('source_origin', this.updateEntry.source_origin);
+      formData.append('destination', this.updateEntry.destination);
       formData.append('received_ord', this.updateEntry.received_ord);
       formData.append('received_mmd', this.updateEntry.received_mmd);
       formData.append('payment_date', this.updateEntry.payment_date);

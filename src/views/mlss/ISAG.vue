@@ -37,6 +37,7 @@
     </div>
 
     <!-- Search and Add New Data Section -->
+
     <div class="flex mt-8 justify-between">
       <div class="flex w-2/5">
         <div class="rounded-l-lg content-center bg-blue-100 items-center pe-3 ml-5 ps-3 pointer-events-none">
@@ -47,12 +48,13 @@
         <div class="w-full">
           <label for="default-search" class="mb-2 text-sm font-medium text-gray-900 sr-only">Search</label>
           <div class="">
-            <input v-model="searchQuery" @input="debouncedSearch" type="search" id="default-search" class="block w-full p-4 text-sm text-gray-900 border border-gray-300 rounded-r-lg bg-gray-50 focus:ring-blue-500 focus:border-blue-500" placeholder="Search name, province, city, barangay, river, status or remarks..." required />
+            <input v-model="searchQuery" @input="debouncedSearch" type="search" id="default-search" class="block w-full p-4 text-sm text-gray-900 border border-gray-300 rounded-r-lg bg-gray-50 focus:ring-blue-500 focus:border-blue-500" placeholder="Search name, province, city, barangay..." required />
           </div>
         </div>
       </div>
-      <div class="content-center">
-        <button @click="showModal = true" class="mr-4 bg-green-900 p-2 text-white font-bold rounded-lg">Add New Data</button>
+      <div class="flex content-center">
+        <button @click="downloadSummary" class="mr-4 bg-blue-400 hover:bg-blue-100 p-2 text-white rounded-lg">Download Summary</button>
+        <button @click="showModal = true" class="mr-4 bg-amber-400 hover:bg-amber-100 p-2 text-black rounded-lg">Add New Data</button>
       </div>
     </div>
 
@@ -64,13 +66,7 @@
             <th scope="col" class="px-6 py-3">No.</th>
             <th scope="col" class="px-6 py-3">Names</th>
             <th scope="col" class="px-6 py-3">Area</th>
-            <th scope="col" class="px-6 py-3 cursor-pointer" @click="sortByDate('province')">
-              Province
-              <span v-if="sortBy === 'province'" aria-label="Sorted ascending">
-                <template v-if="sortOrder === 'asc'">▲</template>
-                <template v-else>▼</template>
-              </span>
-            </th>
+            <th scope="col" class="px-6 py-3">Province</th>
             <th scope="col" class="px-6 py-3">City/Municipality</th>
             <th scope="col" class="px-6 py-3">Barangay</th>
             <th scope="col" class="px-6 py-3">Sitio</th>
@@ -94,6 +90,7 @@
             <th scope="col" class="px-6 py-3">Action</th>
           </tr>
         </thead>
+
         <tbody>
           <tr v-for="(isag, index) in filteredISAG" :key="index" class="bg-white border-b">
             <td class="px-6 py-4">{{ index + 1 }}</td>
@@ -104,13 +101,13 @@
             <td class="px-6 py-4">{{ isag.barangay }}</td>
             <td class="px-6 py-4">{{ isag.sitio }}</td>
             <td class="px-6 py-4">{{ isag.river }}</td>
-            <td class="px-6 py-4">{{ isag.received }}</td>
+            <td class="px-6 py-4">{{ formatDate(isag.received) }}</td>
             <td class="px-6 py-4">{{ formatDate(isag.released) }}</td>
             <td class="px-6 py-4">{{ isag.status }}</td>
             <td class="px-6 py-4">{{ isag.remarks }}</td>
             <td class="px-6 py-4 flex">
-              <button @click="editEntry(isag)" class="bg-grey-100 text-white px-3 py-2 rounded mr-2"><img src="../../assets/icons/edit.png" style="width: 30px;"></button>
-              <button @click="deleteEntry(isag.id)" class="bg-grey-100 text-white px-3 py-2 rounded"><img src="../../assets/icons/remove.png" style="width: 25px;"></button>
+              <button @click="openUpdateModal(isag.id)" class="bg-grey-100 text-white px-2 py-1 rounded"><img src="../../assets/icons/edit.png" style="width: 25px;"></button>
+              <button @click="deleteEntry(isag.id)" class="bg-grey-100 text-white px-2 py-1 rounded "><img src="../../assets/icons/remove.png" style="width: 20px;"></button>
             </td>
           </tr>
         </tbody>
@@ -121,111 +118,182 @@
     </div>
 
     <!-- Modal -->
-    <div v-if="showModal" class="fixed inset-0 flex items-center justify-center bg-gray-800 bg-opacity-75">
-      <div class="bg-white w-1/2 p-6 rounded-lg shadow-lg">
-        <form @submit.prevent="addNewEntry">
-          <div class="mb-4">
-            <label for="name" class="block text-sm font-medium text-gray-700">Name</label>
-            <input type="text" id="name" 
-                   :value="formatInput(newEntry.name)" 
-                   @input="updateEntry('name', $event.target.value)" 
-                   class="p-1 mt-1 block w-full bg-orange-100 border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm" 
-                   required>
-          </div>
+    <div v-if="showModal" class="fixed inset-0 overflow-y-auto">
+      <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+        <!-- Background overlay -->
+        <div class="fixed inset-0 transition-opacity" aria-hidden="true">
+          <div class="absolute inset-0 bg-gray-500 opacity-75"></div>
+        </div>
 
-          <div class="mb-4">
-            <label for="area" class="block text-sm font-medium text-gray-700">Area</label>
-            <input type="text" id="area" 
-                   :value="formatInput(newEntry.area)" 
-                   @input="updateEntry('area', $event.target.value)" 
-                   class="p-1 mt-1 block w-full bg-orange-100 border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm" 
-                   required>
-          </div>
+        <!-- Modal content -->
+        <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+        <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+          <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+            <div class="sm:flex sm:items-start">
+              <div class="mmt-2 space-y-3">
 
-          <div class="mb-4">
-            <label for="province" class="block text-sm font-medium text-gray-700">Province</label>
-            <select id="province" v-model="newEntry.province" class="p-1 mt-1 block w-full bg-orange-100 border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm" required>
-              <option>BUKIDNON</option>
-              <option>CAMIGUIN</option>
-              <option>LANAO DEL NORTE</option>
-              <option>MISAMIS OCCIDENTAL</option>
-              <option>MISAMIS ORIENTAL</option>
-            </select>
+                <div class="mt-2 flex items-center">
+                  <label class="w-48">
+                      Name:<span class="text-red-500">*</span>
+                  </label>
+                  <input v-model="newEntry.name" type="text" class="w-72 bg-orange-100 rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
+                </div>
+                <div class="mt-2 flex items-center">
+                  <label class="w-48">
+                      Area:<span class="text-red-500">*</span>
+                  </label>
+                  <input v-model="newEntry.area" type="text" class="w-72 bg-orange-100 rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
+                </div>
+                <div class="mt-2 flex items-center">
+                  <label class="w-48">
+                      Province:<span class="text-red-500">*</span>
+                  </label>
+                    <select v-model="newEntry.province" class="w-72 bg-orange-100 rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
+                      <option>BUKIDNON</option>
+                      <option>CAMUIGUIN</option>
+                      <option>LANAO DEL NORTE</option>
+                      <option>MISAMIS OCCIDENTAL</option>
+                      <option>MISAMIS ORIENTAL</option>
+                    </select>
+                 </div>
+                <div class="mt-2 flex items-center">
+                  <label class="w-48">
+                    City/Municipality:<span class="text-red-500">*</span>
+                  </label>
+                  <input v-model="newEntry.city_municipality" type="text" class="w-72 bg-orange-100 rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
+                </div>
+                <div class="mt-2 flex items-center">
+                  <label class="w-48">
+                    Barangay:<span class="text-red-500">*</span>
+                  </label>
+                  <input v-model="newEntry.barangay" type="text" class="w-72 bg-orange-100 rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
+                </div>
+                <div class="mt-2 flex justify-between">
+                  <p class="mr-5">Sitio</p>
+                  <input v-model="newEntry.sitio" type="text" class="w-72 bg-orange-100 rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
+                </div>
+                <div class="mt-2 flex justify-between">
+                  <p class="mr-5">River<span class="text-red-500">*</span></p>
+                  <input v-model="newEntry.river" type="text" class="w-72 bg-orange-100 rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
+                </div>
+                <div class="mt-2 flex justify-between">
+                  <p class="mr-5">Date Received<span class="text-red-500">*</span></p>
+                  <input v-model="newEntry.received" type="date" class="pl-1 pr-1 bg-orange-100 rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
+                </div>
+                <div class="mt-2 flex justify-between">
+                  <p class="mr-5">Released Date:<span class="text-red-500">*</span></p>
+                  <input v-model="newEntry.released" type="date" class="pl-1 pr-1 bg-orange-100 rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
+                </div>
+                <div class="mt-2 flex justify-between">
+                  <p class="mr-5">Status</p>
+                  <input v-model="newEntry.status" type="text" class="pl-1 pr-1 bg-orange-100 rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
+                </div>
+                <div class="mt-2 flex justify-between">
+                  <p class="mr-5">Remarks</p>
+                  <input v-model="newEntry.remarks" type="text" class="pl-1 pr-1 bg-orange-100 rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
+                </div>
+              </div>
+            </div>
           </div>
-
-          <div class="mb-4">
-            <label for="city_municipality" class="block text-sm font-medium text-gray-700">City/Municipality</label>
-            <input type="text" id="city_municipality" 
-                   :value="formatInput(newEntry.city_municipality)" 
-                   @input="updateEntry('city_municipality', $event.target.value)" 
-                   class="p-1 mt-1 block w-full bg-orange-100 border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm" 
-                   required>
+          <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+            <button @click="showModal = false" type="button" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-red-600 text-base font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 sm:ml-3 sm:w-auto sm:text-sm">
+              Close
+            </button>
+            <!-- Add request button -->
+            <button @click="addNewEntry" type="button" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-green-600 text-base font-medium text-white hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 sm:ml-3 sm:w-auto sm:text-sm">
+              Add
+            </button>
           </div>
+        </div>
+      </div>
+    </div>
 
-          <div class="mb-4">
-            <label for="barangay" class="block text-sm font-medium text-gray-700">Barangay</label>
-            <input type="text" id="barangay" 
-                   :value="formatInput(newEntry.barangay)" 
-                   @input="updateEntry('barangay', $event.target.value)" 
-                   class="p-1 mt-1 block w-full bg-orange-100 border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm" 
-                   required>
+  <!-- Update Modal -->
+      <div v-if="isUpdateModalOpen" class="fixed inset-0 overflow-y-auto" aria-modal="true" role="dialog">
+      <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+        <!-- Background overlay -->
+        <div class="fixed inset-0 transition-opacity" aria-hidden="true">
+          <div class="absolute inset-0 bg-gray-500 opacity-75"></div>
+        </div>
+
+        <!-- Modal content -->
+        <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+        <form @submit.prevent="handleUpdate" class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-xl sm:w-full">
+          <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+            <div class="sm:flex sm:items-start">
+              <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
+              
+                  <div class="mt-2 flex justify-between">
+                      <p class="mr-5">Name:</p>
+                      <input v-model="updateEntry.name" type="text" class="w-72 bg-orange-100 rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
+                  </div>
+                  <div class="mt-2 flex justify-between">
+                      <p class="mr-5">Area:</p>
+                      <input v-model="updateEntry.area" type="text" class="w-72 bg-orange-100 rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
+                  </div>
+                  <div class="mt-2 flex justify-between">
+                    <p class="mr-5">Province</p>
+                    <select v-model="updateEntry.province" class="w-72 bg-orange-100 rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
+                      <option>BUKIDNON</option>
+                      <option>CAMUIGUIN</option>
+                      <option>LANAO DEL NORTE</option>
+                      <option>MISAMIS OCCIDENTAL</option>
+                      <option>MISAMIS ORIENTAL</option>
+                    </select>
+                  </div>
+                  <div class="mt-2 flex justify-between">
+                      <p class="mr-5">City/Municipality</p>
+                      <input v-model="updateEntry.city_municipality" type="text" class="w-72 bg-orange-100 rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
+                  </div>
+                  <div class="mt-2 flex justify-between">
+                      <p class="mr-5">Barangay</p>
+                      <input v-model="updateEntry.barangay" type="text" class="w-72 bg-orange-100 rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
+                  </div>
+                  <div class="mt-2 flex justify-between">
+                      <p class="mr-5">Sitio</p>
+                      <input v-model="updateEntry.sitio" type="text" class="w-72 bg-orange-100 rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
+                  </div>
+                  <div class="mt-2 flex justify-between">
+                      <p class="mr-5">River<span class="text-red-500">*</span></p>
+                      <input v-model="updateEntry.river" type="text" class="w-72 bg-orange-100 rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
+                  </div>
+                <div class="mt-2 flex justify-between">
+                  <p class="mr-5">Date Received</p>
+                  <input v-model="updateEntry.received" type="date" class="pl-1 pr-1 bg-orange-100 rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
+                </div>
+                <div class="mt-2 flex justify-between">
+                  <p class="mr-5">Date Released</p>
+                  <input v-model="updateEntry.released" type="date" class="pl-1 pr-1 bg-orange-100 rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
+                </div>
+                <div class="mt-2 flex justify-between">
+                  <p class="mr-5">Status</p>
+                  <input v-model="updateEntry.status" type="text" class="w-72 bg-orange-100 rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
+                </div>
+                <div class="mt-2 flex justify-between">
+                  <p class="mr-5">Remarks</p>
+                  <input v-model="updateEntry.remarks" type="text" class="w-72 bg-orange-100 rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
+                </div>
+              </div>
+            </div>
           </div>
-
-          <div class="mb-4">
-            <label for="sitio" class="block text-sm font-medium text-gray-700">Sitio</label>
-            <input type="text" id="sitio" 
-                   :value="formatInput(newEntry.sitio)" 
-                   @input="updateEntry('sitio', $event.target.value)" 
-                   class="p-1 mt-1 block w-full bg-orange-100 border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
-          </div>
-
-          <div class="mb-4">
-            <label for="river" class="block text-sm font-medium text-gray-700">River</label>
-            <input type="text" id="river" 
-                   :value="formatInput(newEntry.river)" 
-                   @input="updateEntry('river', $event.target.value)" 
-                   class="p-1 mt-1 block w-full bg-orange-100 border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm" 
-                   required>
-          </div>
-
-          <div class="mb-4">
-            <label for="received" class="block text-sm font-medium text-gray-700">Date Received</label>
-            <input type="date" id="received" v-model="newEntry.received" class="p-1 mt-1 block w-full bg-orange-100 border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm" required>
-          </div>
-
-          <div class="mb-4">
-            <label for="released" class="block text-sm font-medium text-gray-700">Date Released</label>
-            <input type="date" id="released" v-model="newEntry.released" class="p-1 mt-1 block w-full bg-orange-100 border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm" required>
-          </div>
-
-          <div class="mb-4">
-            <label for="status" class="block text-sm font-medium text-gray-700">Status</label>
-            <input type="text" id="status" 
-                   :value="formatInput(newEntry.status)" 
-                   @input="updateEntry('status', $event.target.value)" 
-                   class="p-1 mt-1 block w-full bg-orange-100 border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm" 
-                   required>
-          </div>
-
-          <div class="mb-4">
-            <label for="remarks" class="block text-sm font-medium text-gray-700">Remarks</label>
-            <textarea id="remarks" v-model="newEntry.remarks" class="p-1 mt-1 block w-full bg-orange-100 border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"></textarea>
-          </div>
-
-          <div class="flex justify-end">
-            <button type="button" @click="showModal = false" class="bg-red-500 text-white px-4 py-2 rounded mr-2">Cancel</button>
-            <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded">Add Entry</button>
+          <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+            <button @click="closeModal" type="button" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-red-600 text-base font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 sm:ml-3 sm:w-auto sm:text-sm">
+              Close
+            </button>
+            <button type="submit" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-green-600 text-base font-medium text-white hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 sm:ml-3 sm:w-auto sm:text-sm">
+              Update
+            </button>
           </div>
         </form>
       </div>
     </div>
-    
-  </div>
+
+</div>
 </template>
 
 <script>
-import Header from '../../components/header.vue';
-import UserBtn from '../../components/user-dbbtn.vue';
+import Header from '../../components/header.vue';  
+import UserBtn from '../../components/user-dbbtn.vue'; 
 import MonthBarChart from '../../components/bymonth-barchart.vue';
 import PieChart from '../../components/byprovince-piechart.vue';
 import axios from 'axios';
@@ -236,14 +304,19 @@ export default {
   components: { Header, UserBtn, MonthBarChart, PieChart },
   data() {
     return {
-      isag: [],
-      searchQuery: '',
-      sortBy: '',
-      sortOrder: 'asc',
-      showModal: false,
-      newEntry: this.getEmptyEntry(),
-    };
+    isag: [],
+    searchQuery: '',
+    sortBy: '',
+    sortOrder: 'asc',
+    showModal: false,
+    newEntry: this.getEmptyEntry(),
+    isUpdateModalOpen: false,
+    updateEntry: this.getEmptyEntry(),
+    debouncedSearch: debounce(this.search, 300),
+
+  };
   },
+
   computed: {
     filteredISAG() {
       return this.getFilteredAndSortedData();
@@ -254,7 +327,7 @@ export default {
       .filter(isag => new Date(isag.released).getFullYear() === latestYear)
       .length;
   },
-  monthlyTotals() {
+    monthlyTotals() {
       const latestYear = Math.max(...this.isag.map(item => new Date(item.released).getFullYear()));
       const monthlyData = Array(12).fill(0); // Initialize an array for 12 months
 
@@ -288,12 +361,49 @@ export default {
     return new Date().getFullYear();
   }
   },
+
   methods: {
 
     formatDate(dateString) {
     const date = new Date(dateString);
     return date.toISOString().split('T')[0];
     },
+
+    downloadSummary() {
+      // Convert filteredISAG data to CSV and trigger download
+      const rows = this.filteredISAG;
+      if (!rows.length) {
+        alert('No data available to download.');
+        return;
+      }
+      // Extract CSV headers from keys of first object
+      const headers = Object.keys(rows[0]);
+      // Helper function to escape CSV special characters
+      const escapeCSV = (value) => {
+        if (value == null) return '';
+        const stringValue = String(value);
+        if (stringValue.search(/("|,|\\n)/g) >= 0) {
+          return `"${stringValue.replace(/"/g, '""')}"`;
+        }
+        return stringValue;
+      };
+      // Create CSV content as string
+      const csvContent = [
+        headers.join(','), // header row
+        ...rows.map(row => headers.map(fieldName => escapeCSV(row[fieldName])).join(','))
+      ].join('\n');
+      // Create blob and trigger download
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const downloadLink = document.createElement('a');
+      const url = URL.createObjectURL(blob);
+      downloadLink.href = url;
+      downloadLink.setAttribute('download', `isag_summary_${new Date().toISOString().slice(0,10)}.csv`);
+      document.body.appendChild(downloadLink);
+      downloadLink.click();
+      document.body.removeChild(downloadLink);
+      URL.revokeObjectURL(url);
+    },
+
 
     getEmptyEntry() {
       return {
@@ -310,29 +420,7 @@ export default {
         remarks: '',
       };
     },
-    formatInput(value) {
-      return value ? value.toUpperCase() : '';
-    },
-    updateEntry(field, value) {
-      this.newEntry[field] = value.toUpperCase();
-    },
-    editEntry(isag) {
-      this.newEntry = { ...isag };
-      this.isEditMode = true;
-      this.editingId = isag.id;
-      this.showModal = true;
-    },
-    deleteEntry(id) {
-      if (confirm('Are you sure you want to delete this entry?')) {
-        axios.delete(`${API_BASE_URL}/api/csag/${id}`)
-          .then(() => {
-            this.isag = this.isag.filter(item => item.id !== id);
-          })
-          .catch(error => {
-            console.error('Error deleting entry:', error.response ? error.response.data : error.message);
-          });
-      }
-    },
+
     fetchISAG() {
       axios.get(`${API_BASE_URL}/api/isag`)
         .then(response => {
@@ -342,35 +430,53 @@ export default {
           console.error('Error fetching ISAG:', error);
         });
     },
+
     addNewEntry() {
-      axios.post(`${API_BASE_URL}/api/isag`, this.newEntry)
+      // Client-side validation for required fields
+      const requiredFields = ['name', 'area', 'province', 'city_municipality', 'barangay', 'river', 'received','released'];
+      for (const field of requiredFields) {
+        if (!this.newEntry[field]) {
+          alert(`The field "${field.replace(/_/g, ' ')}" is required.`);
+          return;
+        }
+      }
+
+      const formData = new FormData();
+      formData.append('name', this.newEntry.name);
+      formData.append('area', this.newEntry.area);
+      formData.append('province', this.newEntry.province);
+      formData.append('city_municipality', this.newEntry.city_municipality);
+      formData.append('barangay', this.newEntry.barangay);
+      formData.append('sitio', this.newEntry.sitio);
+      formData.append('river', this.newEntry.river);
+      formData.append('received', this.newEntry.received);
+      formData.append('released', this.newEntry.released);
+      formData.append('status', this.newEntry.status);
+      formData.append('remarks', this.newEntry.remarks);
+
+      axios.post(`${API_BASE_URL}/api/isag`, formData)
         .then(response => {
           this.isag.push(response.data);
-          this.clearNewEntry();
+          this.showModal = false;
+          this.newEntry = this.getEmptyEntry();
+          alert('Entry added successfully!');
         })
         .catch(error => {
-          console.error('Error adding entry:', error.response ? error.response.data : error.message);
+          console.error('Error adding new entry:', error);
+          alert('Some fields are required!');
         });
     },
-    clearNewEntry() {
-      this.newEntry = this.getEmptyEntry();
-      this.showModal = false;
+
+    search() {
+    axios.get(`${API_BASE_URL}/api/isag/search?query=${this.searchQuery}`)
+      .then(response => {
+        this.isag = response.data;
+      })
+      .catch(error => {
+        console.error('Error searching for ISAG:', error);
+      });
     },
-    debouncedSearch: debounce(function() {
-      this.searchData();
-    }, 300),
-    searchData() {
-      // Trigger re-computation of filteredISAG
-      this.filteredisag;
-    },
-    sortByDate(key) {
-      if (this.sortBy === key) {
-        this.sortOrder = this.sortOrder === 'asc' ? 'desc' : 'asc';
-      } else {
-        this.sortBy = key;
-        this.sortOrder = 'asc';
-      }
-    },
+
     getFilteredAndSortedData() {
       const query = this.searchQuery.toLowerCase();
       const filtered = this.isag.filter(isag =>
@@ -378,12 +484,10 @@ export default {
           String(val).toLowerCase().includes(query)
         )
       );
-
       if (this.sortBy) {
       filtered.sort((a, b) => {
         let aValue = a[this.sortBy];
         let bValue = b[this.sortBy];
-
         if (this.sortBy === 'released' || this.sortBy === 'received') {
           aValue = new Date(aValue);
           bValue = new Date(bValue);
@@ -391,7 +495,6 @@ export default {
           aValue = String(aValue).toLowerCase();
           bValue = String(bValue).toLowerCase();
         }
-
         if (this.sortOrder === 'asc') {
           return aValue > bValue ? 1 : aValue < bValue ? -1 : 0;
         } else {
@@ -399,9 +502,91 @@ export default {
         }
       });
     }
-
       return filtered;
+    },
+
+    debounce(func, wait) {
+    let timeout;
+    return (...args) => {
+      clearTimeout(timeout);
+      timeout = setTimeout(() => func.apply(this, args), wait);
+    };
+    },
+
+    deleteEntry(id) {
+      if (confirm('Are you sure you want to delete this entry?')) {
+        axios.delete(`${API_BASE_URL}/api/isag/${id}`)
+          .then(() => {
+            this.isag = this.isag.filter(item => item.id !== id);
+          })
+          .catch(error => {
+            console.error('Error deleting entry:', error.response ? error.response.data : error.message);
+          });
+      }
+    },
+
+    openUpdateModal(thisid) {
+    console.log('openUpdateModal called with ID:', thisid);
+    const entry = this.isag.find(entry => entry.id === thisid);
+    if (entry) {
+      this.updateEntry = { ...entry };
+      this.isUpdateModalOpen = true;
+      console.log('Update modal open with entry:', this.updateEntry);
+    } else {
+      console.error('Entry not found with ID:', thisid);
     }
+    },
+
+    closeModal() {
+      this.isUpdateModalOpen = false; 
+      this.updateEntry = this.getEmptyEntry();
+    },
+
+    sortByDate(key) {
+        if (this.sortBy === key) {
+          this.sortOrder = this.sortOrder === 'asc' ? 'desc' : 'asc';
+        } else {
+          this.sortBy = key;
+          this.sortOrder = 'asc';
+        }
+    },
+
+    async handleUpdate() {
+    // Validate file size and type if files are selected
+
+      // Prepare form data for the update
+        const formData = new FormData();
+        formData.append('name', this.updateEntry.name);
+        formData.append('area', this.updateEntry.area);
+        formData.append('province', this.updateEntry.province);
+        formData.append('city_municipality', this.updateEntry.city_municipality);
+        formData.append('barangay', this.updateEntry.barangay);
+        formData.append('sitio', this.updateEntry.sitio);
+        formData.append('river', this.updateEntry.river);
+        formData.append('received', this.updateEntry.received);
+        formData.append('released', this.updateEntry.released);
+        formData.append('status', this.updateEntry.status);
+        formData.append('remarks', this.updateEntry.remarks);
+
+        // Use PUT request for updating the entry
+        axios.post(`${API_BASE_URL}/api/isag/${this.updateEntry.id}`, formData)
+          .then(response => {
+            // Find the index of the entry to be updated
+            const index = this.isag.findIndex(entry => entry.id === this.updateEntry.id);
+
+            if (index !== -1) {
+              this.isag[index] = response.data;
+            }
+
+        // Close the modal after successful update
+        this.closeModal();
+        alert('Entry updated successfully!');
+    })
+    .catch(error => {
+      console.error('Error updating entry:', error);
+      alert('Failed to update the entry.');
+    });
+    },
   },
   mounted() {
     this.fetchISAG();

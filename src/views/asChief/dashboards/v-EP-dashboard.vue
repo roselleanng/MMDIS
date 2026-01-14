@@ -9,7 +9,7 @@
   
     <!-- Title Section -->
     <div class="flex flex-col mt-18 justify-center font-bold text-center">
-        <h1 class="text-4xl">Financial or Technical Assistance Agreement</h1>
+        <h1 class="text-4xl">Exploration Permit</h1>
         <h2 class="text-2xl pt-2">SUMMARY</h2>
     </div>
 

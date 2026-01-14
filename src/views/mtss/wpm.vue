@@ -21,6 +21,8 @@
       </div>
     </div>
 
+
+
     <!-- Total Sum Section -->
     <div class="flex bg-white justify-between pl-4 pt-4">
       <h2 class="flex text-xl font-semibold">
@@ -50,6 +52,7 @@
         <table class="w-full text-sm text-left rtl:text-right text-gray-500">
           <thead class="text-xs text-gray-700 uppercase bg-gray-50">
             <tr>
+              <th scope="col" class="px-6 py-3">No.</th>
               <th scope="col" class="px-6 py-3 cursor-pointer" @click="sortByDate('month')">
                 Month
                 <span v-if="sortKey === 'month'" aria-label="Sorted ascending">
@@ -57,7 +60,7 @@
                   <template v-else>▼</template>
                 </span>
               </th>
-              <th scope="col" class="px-6 py-3">No.</th>
+              
               <th scope="col" class="px-6 py-3">Work Program | Term and Conditions | Requirements of: (Field Monitoring)</th>
               <th scope="col" class="px-6 py-3 cursor-pointer" @click="sortByDate('travel_date')">
                 Travel Date
@@ -94,8 +97,9 @@
           </thead>
           <tbody>
             <tr v-for="(entry, index) in filteredEntries" :key="entry.ID" class="bg-white border-b">
-              <td class="px-6 py-4">{{ entry.month }}</td>
               <td class="px-6 py-4">{{ index + 1 }}</td>
+              <td class="px-6 py-4">{{ entry.month }}</td>
+              
               <td class="px-6 py-4" style="width: 300px;">{{ entry.text_field }}</td>
               <td class="px-6 py-4">{{ entry.travel_date_from }} to {{ entry.travel_date_to }}</td>
               <td class="px-6 py-4">{{ entry.report_date }}</td>
@@ -131,9 +135,12 @@
           <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
             <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
               <div class="sm:flex sm:items-start">
-                <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
-                  <div class="mt-2 flex justify-between">
-                    <p class="mr-5">Select Month:</p>
+                <div class="mt-2 space-y-3">
+                  <div class="grid grid-cols-1 sm:grid-cols-[12rem_1fr] gap-1 sm:items-center">
+                    <label class="w-48">
+                      Select Month:<span class="text-red-500">*</span>
+                    </label>
+                   
                     <select v-model="newEntry.month" class="w-72 bg-orange-100 rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
                       <option>JANUARY</option>
                       <option>FEBRUARY</option>
@@ -150,7 +157,7 @@
                     </select>
                   </div>
                   <div class="mt-2 flex flex-col">
-                    <label for="text_field" class="text-gray-700">Work Program | Term and Conditions | Requirements of: (Field Monitoring)</label>
+                    <label for="text_field" class="text-gray-700">Work Program | Term and Conditions | Requirements of: (Field Monitoring):<span class="text-red-500">*</span></label>
                     <textarea v-model="newEntry.text_field" id="text_field" rows="4" class="w-full bg-orange-100 rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"></textarea>
                   </div>
                   <div class="mt-2 flex justify-between">
@@ -367,6 +374,7 @@ export default {
         })
         .catch(error => {
           console.error('Error fetching WPM:', error);
+          alert('Failed to load data. Please check if the backend server is running.');
         });
     },
 

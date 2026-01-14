@@ -70,7 +70,7 @@ export default {
             router.push('/mtss/dmpf');
         },
         redirectToPCMRB() {
-            router.push('/mtss/pcmrbm');
+            router.push('/mtss/pcmrb');
         },
         redirectToMPSA() {
             router.push('/mtss/mpsa');

@@ -12,7 +12,7 @@ import mbm from "../views/mtss/mbm.vue";
 import investigation from "../views/mtss/investigation.vue";
 import antiillegal from "../views/mtss/anti-illegal.vue";
 import dmpf from "../views/mtss/dmpf.vue";
-import PCMRBM from "../views/mtss/PCMRBM.vue";
+import pcmrb from "../views/mtss/pcmrb.vue";
 import mpsa from "../views/mtss/mpsa.vue";
 import isag from "../views/mtss/isag.vue";
 import ep from "../views/mtss/ep.vue";
@@ -111,7 +111,7 @@ const routes = [
   { path: "/mtss/investigation", component: investigation, meta: { requiresAuth: true } },
   { path: "/mtss/anti-illegal", component: antiillegal, meta: { requiresAuth: true } },
   { path: "/mtss/dmpf", component: dmpf, meta: { requiresAuth: true } },
-  { path: "/mtss/PCMRBM", component: PCMRBM, meta: { requiresAuth: true } },
+  { path: "/mtss/pcmrb", component: pcmrb, meta: { requiresAuth: true } },
   { path: "/mtss/mpsa", component: mpsa, meta: { requiresAuth: true } },
   { path: "/mtss/isag", component: isag, meta: { requiresAuth: true } },
   { path: "/mtss/ep", component: ep, meta: { requiresAuth: true } },

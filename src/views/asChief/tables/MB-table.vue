@@ -170,10 +170,11 @@ export default {
 
       return validLocations.join('<br>'); // Join locations with a line break
     },
-      async fetchDetails() {
+async fetchDetails() {
           try {
-              const response = await axios.get(`${API_BASE_URL}/get_details/`);
-              this.details = response.data.filter(det => det.application == 'mb');
+              const response = await axios.get(`${API_BASE_URL}/MonitoringMB`);
+              // Remove filtering on application
+              this.details = response.data;
           } catch (error) {
               console.error('Error fetching details:', error);
           }

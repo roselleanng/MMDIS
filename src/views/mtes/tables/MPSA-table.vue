@@ -69,7 +69,7 @@
                 <template v-else>▼</template>
               </span>
             </th>
-            <th class="border text-center p-2">Locations</th>
+            <th class="border text-center p-2">Location</th>
             <th class="border text-center p-2">Commodity</th>
             <th class="border text-center p-2">Action</th>
           </tr>

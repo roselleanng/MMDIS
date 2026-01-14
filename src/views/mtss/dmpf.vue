@@ -28,8 +28,8 @@
       </h2>
     </div>
 
-    <!-- Search and Add Section -->
-    <div class="flex justify-between mt-8">
+<!-- Search and Add Section -->
+<div class="flex justify-between mt-8">
       <!-- Search Input Container -->
       <div class="flex w-2/5 ml-2">
         <!-- Search Icon -->
@@ -45,13 +45,14 @@
       <AddBtn @click="showModal = true" />
     </div>
 
+
     <!-- Table Section -->
     <div class="mt-8">
       <table class="w-full text-sm text-left rtl:text-right text-gray-500">
         <thead class="text-xs text-gray-700 uppercase bg-gray-50">
           <tr>
-            <th scope="col" class="px-6 py-3">Month</th>
             <th scope="col" class="px-6 py-3">No.</th>
+            <th scope="col" class="px-6 py-3">Month</th>
             <th scope="col" class="px-6 py-3">DMPF Endorsed</th>
             <th scope="col" class="px-6 py-3 cursor-pointer" @click="sortByDate('filing_date')">
               Filing Date
@@ -86,9 +87,10 @@
           </tr>
         </thead>
         <tbody>
-          <tr v-for="(entry, index) in filteredEntries" :key="entry.no" class="bg-white border-b">
-            <td class="px-6 py-4">{{ entry.month }}</td>
+
+          <tr v-for="(entry, index) in filteredEntries" :key="entry.ID" class="bg-white border-b">
             <td class="px-6 py-4">{{ index + 1 }}</td>
+            <td class="px-6 py-4">{{ entry.month }}</td>
             <td class="px-6 py-4">{{ entry.dmpf_endorsed }}</td>
             <td class="px-6 py-4">{{ entry.filing_date }}</td>
             <td class="px-6 py-4">{{ entry.endorsed }}</td>
@@ -113,12 +115,12 @@
       </div>
 
       <!-- Modal for Adding New Entry -->
-      <div v-if="showModal" class="fixed inset-0 overflow-y-auto">
-        <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-          <!-- Background overlay -->
-          <div class="fixed inset-0 transition-opacity" aria-hidden="true">
-            <div class="absolute inset-0 bg-gray-500 opacity-75"></div>
-          </div>
+    <div v-if="showModal" class="fixed inset-0 overflow-y-auto">
+      <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+        <!-- Background overlay -->
+        <div class="fixed inset-0 transition-opacity" aria-hidden="true">
+          <div class="absolute inset-0 bg-gray-500 opacity-75"></div>
+        </div>
 
           <!-- Modal content -->
           <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
@@ -127,7 +129,7 @@
               <div class="sm:flex sm:items-start">
                 <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
                   <div class="mt-2 flex justify-between">
-                    <label for="text_field">Select Month</label>
+                    <label for="text_field">Select Month:<span class="text-red-500">*</span></label>
                     <select v-model="newEntry.month" class="w-72 bg-orange-100 rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
                       <option>JANUARY</option>
                       <option>FEBRUARY</option>
@@ -144,7 +146,7 @@
                     </select>
                   </div>
                   <div class="mt-2 flex justify-between">
-                    <p class="mr-5">DMPF Endorsed:</p>
+                    <p class="mr-5">DMPF Endorsed:<span class="text-red-500">*</span></p>
                     <input v-model="newEntry.dmpf_endorsed" type="text" class="w-72 bg-orange-100 rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
                   </div>
                   <div class="mt-2 flex justify-between">
@@ -156,7 +158,7 @@
                     <input v-model="newEntry.endorsed" type="date" class="pl-1 pr-1 bg-orange-100 rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
                   </div>
                   <div class="mt-2 flex justify-between">
-                    <p class="mr-5">Transmittal Date:</p>
+                    <p class="mr-5">Transmittal Date:<span class="text-red-500">*</span></p>
                     <input v-model="newEntry.transmittal" type="date" class="pl-1 pr-1 bg-orange-100 rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
                   </div>
                   <div class="mt-2 flex justify-between">
@@ -256,9 +258,9 @@
 </template>
 
 <script>
-import Header from '../../components/header.vue'; // Import Header component
-import AddBtn from '../../components/MTSS/add-btn.vue'; // Import Add Button component
-import UserBtn from '../../components/user-dbbtn.vue'; // Import User Button component
+import Header from '../../components/header.vue'; 
+import AddBtn from '../../components/MTSS/add-btn.vue'; 
+import UserBtn from '../../components/user-dbbtn.vue'; 
 import MonthBarChart from '../../components/bymonth-barchart.vue';
 import axios from 'axios';
 import debounce from 'lodash/debounce';
@@ -312,8 +314,8 @@ export default {
   methods: {
     getEmptyEntry() {
       return {
-        month: '',
         no: '',
+        month: '',
         dmpf_endorsed: '',
         filing_date: '',
         endorsed: '',
@@ -330,6 +332,7 @@ export default {
         })
         .catch(error => {
           console.error('Error fetching monitoringDMPF:', error);
+          alert('Failed to load data. Please check if the backend server is running.');
         });
     },
 

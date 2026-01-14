@@ -32,15 +32,15 @@
                   <option value="" disabled selected>- - - - Select a Region - - - -</option>
                   <option v-for="region in regions" :value="region.region_code" :key="region.region_code">{{ region.region_name }}</option>
                 </select>
-                <select v-model="detailstoadd[`province${index}`]" @change="handleProvince(0, $event)" class="w-full bg-green-300 rounded-md mt-2 text-center">
+                <select @change="handleProvince(0, $event)" class="w-full bg-green-300 rounded-md mt-2 text-center">
                   <option value="" disabled selected>- - - - Select Province - - - - </option>
                   <option v-for="province in locations[0].provinces" :value="province.province_code" :key="province.province_code">{{ province.province_name }}</option>
                 </select>
-                <select v-model="detailstoadd[`city${index}`]" @change="handleCity(0, $event)" class="w-full bg-green-300 rounded-md mt-2 text-center">
+                <select @change="handleCity(0, $event)" class="w-full bg-green-300 rounded-md mt-2 text-center">
                   <option value="" disabled selected>- - - - Select City - - - - </option>
                   <option v-for="city in locations[0].cities" :value="city.city_code" :key="city.city_code">{{ city.city_name }}</option>
                 </select>
-                <select v-model="detailstoadd[`barangay${index}`]" @change="handleBarangay(0, $event)"class="w-full bg-green-300 rounded-md mt-2 text-center">
+                <select @change="handleBarangay(0, $event)"class="w-full bg-green-300 rounded-md mt-2 text-center">
                   <option value="" disabled selected>- - - - Select Barangay - - - -</option>
                   <option v-for="barangay in locations[0]?.barangays" :key="barangay.brgy_code" :value="barangay.brgy_code">  {{ barangay.brgy_name }} </option>
                 </select>
@@ -111,14 +111,14 @@
                       class="mt-2 pl-1 pr-1 border rounded-md w-full" placeholder="Enter other category"/>
 
                     <div class="items-center mt-2">
-                      <p class="mr-2">Authorized Representative:</p>
+                      <p class="mr-2">Authorized Representative:<span class="pl-1 text-red-500">*</span></p>
                       <input v-model="detailstoadd.authorized_rep" type="text" 
                         class="w-full pl-1 pr-1 bg-green-300 rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
                     </div>
 
                     <div class="items-center mt-2">
                       <p class="flex mr-2 w-40">Contact Number:<p class="pl-1 text-red-500">*</p></p>
-                      <input v-model="contactnum" type="text" @input="formatContactNum" maxlength="11"
+                      <input v-model="contactnum" type="text" @input="formatContactNum" 
                         class="w-full pl-1 pr-1 bg-green-300 rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
                     </div>
                   </div>
@@ -296,7 +296,12 @@ export default {
     },
     handleProvince(index, event) {
       const selectedProvince = event.target.selectedOptions[0].text; // Get the province name
-      this.detailstoadd[`province${index > 0 ? index - 0 : ''}`] = selectedProvince; // Store name
+      
+      if (index === 0) {
+        this.detailstoadd.province = selectedProvince; // Store directly for first location
+      } else {
+        this.detailstoadd[`province${index}`] = selectedProvince; // Store with index for additional locations
+      }
 
       cities(event.target.value).then(response => {
         this.locations[index].cities = response;
@@ -305,14 +310,26 @@ export default {
     },
     handleCity(index, event) {
       const selectedCity = event.target.selectedOptions[0].text; // Get the city name
-      this.detailstoadd[`city${index > 0 ?  index - 0 : ''}`] = selectedCity; // Store name
+      
+      if (index === 0) {
+        this.detailstoadd.city = selectedCity; // Store directly for first location
+      } else {
+        this.detailstoadd[`city${index}`] = selectedCity; // Store with index for additional locations
+      }
+      
       barangays(event.target.value).then(response => {
         this.locations[index].barangays = response;
       });
     },
     handleBarangay(index, event) {
       const selectedBarangay = event.target.selectedOptions[0].text; // Get barangay name
-      this.detailstoadd[`barangay${index > 0 ?  index - 0 : '' }`] = selectedBarangay; // Store dynamically
+      
+      if (index === 0) {
+        this.detailstoadd.barangay = selectedBarangay; // Store directly for first location
+      } else {
+        this.detailstoadd[`barangay${index}`] = selectedBarangay; // Store with index for additional locations
+      }
+      
       console.log(index)
       console.log(selectedBarangay)
     },
@@ -333,11 +350,88 @@ export default {
       this.locations.splice(index + 1, 1);
     },
 
+    validateForm() {
+      const missingFields = [];
+
+      if (!this.detailstoadd.tenement_name.trim()) {
+        missingFields.push('Applicant Name');
+      }
+
+      if (!this.detailstoadd.province || !this.detailstoadd.city || !this.detailstoadd.barangay) {
+        missingFields.push('Complete Location 1 (Region, Province, City, Barangay)');
+      }
+
+      if (!this.detailstoadd.area_hectares) {
+        missingFields.push('Area (HA) for Location 1');
+      }
+
+      if (!this.detailstoadd.commodity.trim()) {
+        missingFields.push('Commodity');
+      }
+
+      if (!this.detailstoadd.date_filed) {
+        missingFields.push('Date Filed');
+      }
+
+      if (!this.selectedCategory) {
+        missingFields.push('Category');
+      } else if (this.selectedCategory === 'Other' && !this.otherCategory.trim()) {
+        missingFields.push('Other Category');
+      }
+
+      if (!this.detailstoadd.authorized_rep.trim()) {
+        missingFields.push('Authorized Representative');
+      }
+
+      if (!this.contactnum || this.contactnum.length !== 11) {
+        missingFields.push('Valid Contact Number (11 digits)');
+      }
+
+      if (!this.detailstoadd.email.trim()) {
+        missingFields.push('Email Address');
+      } else {
+        // Validate email format
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(this.detailstoadd.email)) {
+          missingFields.push('Valid Email Address (e.g., user@example.com)');
+        }
+      }
+
+      if (!this.detailstoadd.address.trim()) {
+        missingFields.push('Address');
+      }
+
+      if (!this.detailstoadd.status) {
+        missingFields.push('Status');
+      }
+
+      if (this.detailstoadd.status === 'On-going Process' && !this.selectedOngoingProcessing) {
+        missingFields.push('Stage of Processing');
+      }
+
+      if (missingFields.length > 0) {
+        alert(`Please fill in the following required fields:\n\n${missingFields.join('\n')}`);
+        return false;
+      }
+
+      return true;
+    },
+
     submit() {
+        if (!this.validateForm()) {
+            return;
+        }
+
         const formData = new FormData();
 
+        // Append all fields, converting empty strings to null for optional fields
         for (const [key, value] of Object.entries(this.detailstoadd)) {
-            formData.append(key, value);
+            // For optional fields, send null instead of empty string
+            if (key === 'others' || key === 'oth_rs' || key === 'tenement_number') {
+                formData.append(key, value.trim() || null);
+            } else {
+                formData.append(key, value);
+            }
         }
 
         formData.append('category', this.selectedCategory === 'Other' ? this.otherCategory : this.selectedCategory);
@@ -349,17 +443,18 @@ export default {
         // Update stage_of_processing based on status
         if (this.detailstoadd.status === 'On-going Process') {
             formData.append('stage_of_processing', this.selectedOngoingProcessing);
-            this.detailstoadd.stage_of_processing = this.selectedOngoingProcessing; // Ensure it's reflected in the object
+            this.detailstoadd.stage_of_processing = this.selectedOngoingProcessing;
         } else {
             formData.append('stage_of_processing', '-');
             this.detailstoadd.stage_of_processing = '-';
         }
 
+        // Append additional locations data, converting empty/undefined to null
         this.visibleLocations.forEach((_, index) => {
-            formData.append(`barangay${index + 1}`, this.detailstoadd[`barangay${index + 1}`]);
-            formData.append(`city${index + 1}`, this.detailstoadd[`city${index + 1}`]);
-            formData.append(`province${index + 1}`, this.detailstoadd[`province${index + 1}`]);
-            formData.append(`area_hectares${index + 1}`, this.detailstoadd[`area_hectares${index + 1}`]);
+            formData.append(`barangay${index + 1}`, this.detailstoadd[`barangay${index + 1}`] || null);
+            formData.append(`city${index + 1}`, this.detailstoadd[`city${index + 1}`] || null);
+            formData.append(`province${index + 1}`, this.detailstoadd[`province${index + 1}`] || null);
+            formData.append(`area_hectares${index + 1}`, this.detailstoadd[`area_hectares${index + 1}`] || null);
         });
 
         axios.post(`${API_BASE_URL}/add_details`, formData)
@@ -369,7 +464,7 @@ export default {
             })
             .catch(error => {
                 console.error('Error:', error);
-                alert('Failed to submit details. Please try again.');
+                alert('Failed to submit details. Please check your input and try again.');
             });
     },
     formatContactNum() {

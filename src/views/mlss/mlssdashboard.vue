@@ -18,7 +18,7 @@
 
       <!-- Right Content Section: Pie Chart -->
       <div class="flex flex-col bg-white text-gray-700 w-6/12 p-2">
-        <div class="py-6 grid place-items-center">
+        <div class="py-6 grid place-items-center w-full">
           <PieChart :provinceData="combinedProvinceData" />
         </div>
       </div>

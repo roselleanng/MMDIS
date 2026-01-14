@@ -79,13 +79,18 @@ const togglePasswordVisibility = () => {
     showPassword.value = !showPassword.value;
 };
 
+
+/**
+ * Handle user login
+ * Note: Passwords should ideally be handled securely via hashed authentication in backend.
+ */
 const handleLogin = async () => {
     const passvalid = /^(?=.*[a-z])(?=.*[A-Z])[a-zA-Z0-9-]{7,}$/;
 
     if (form.value.username === '' && form.value.password === '') {
         alert('Both username and password are required');
         return;
-    } 
+    }
 
     if (form.value.username === '') {
         alert('Input Username');
@@ -110,7 +115,7 @@ const handleLogin = async () => {
         }
 
         // If the account is found, store the token and redirect
-        localStorage.setItem('authToken', 'someGeneratedToken'); // Replace 'someGeneratedToken' with the actual token from your API if available.
+        localStorage.setItem('authToken', 'someGeneratedToken'); // Replace with real token from backend if available in future
         localStorage.setItem('username', form.value.username);
 
         pleaseWait.value = false;
@@ -136,9 +141,21 @@ const handleLogin = async () => {
         }
     } catch (error) {
         console.error('Login error:', error);
-        pleaseWait.value = false;
-        alert('Login error, please try again!');
+        let errorMsg = 'Login error, please try again!';
+        if (error.response) {
+            errorMsg = `Login failed: ${error.response.data.message || JSON.stringify(error.response.data)}`;
+            console.error('Response data:', error.response.data);
+            console.error('Response status:', error.response.status);
+        } else if (error.request) {
+            errorMsg = 'No response received from server.';
+            console.error('No response received:', error.request);
+        } else {
+            errorMsg = `Error setting up request: ${error.message}`;
+            console.error('Error setting up request:', error.message);
+        }
+        alert(errorMsg);
     } finally {
+        pleaseWait.value = false;
         submitting.value = false;
     }
 }

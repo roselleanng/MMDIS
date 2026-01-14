@@ -35,6 +35,10 @@ export default {
       return {
         responsive: true,
         plugins: {
+          title: {
+            display: true,
+            text: 'Entries by Province'
+          },
           legend: {
             position: 'right',
             labels: {

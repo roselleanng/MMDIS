@@ -111,14 +111,14 @@
                       class="mt-2 pl-1 pr-1 border rounded-md w-full" placeholder="Enter other category"/>
 
                     <div class="items-center mt-2">
-                      <p class="mr-2">Authorized Representative:</p>
+                      <p class="mr-2">Authorized Representative:<span class="pl-1 text-red-500">*</span></p>
                       <input v-model="detailstoadd.authorized_rep" type="text" 
                         class="w-full pl-1 pr-1 bg-green-300 rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
                     </div>
 
                     <div class="items-center mt-2">
                       <p class="flex mr-2 w-40">Contact Number:<p class="pl-1 text-red-500">*</p></p>
-                      <input v-model="contactnum" type="text" @input="formatContactNum" maxlength="11"
+                      <input v-model="contactnum" type="text" @input="formatContactNum" 
                         class="w-full pl-1 pr-1 bg-green-300 rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
                     </div>
                   </div>
