@@ -55,6 +55,10 @@ export default {
   components: { Bar },
   props: {
     application: String,
+    mode: {
+      type: String,
+      default: 'new' // safety default
+    }
   },
   data() {
     return {
@@ -146,6 +150,14 @@ export default {
   created() {
     this.fetchProvinceData();
   },
+  watch: {
+    application: function() {
+      this.fetchProvinceData();
+    },
+    mode: function() {
+      this.fetchProvinceData();
+    }
+  },
   methods: {
     fetchProvinceData() {
   axios.get(`${API_BASE_URL}/get_details/`)
@@ -162,7 +174,25 @@ export default {
       const cgyDistrict1 = { 'cagayan de oro city (capital)': 0 };
       const iligDistrict1 = { 'iligan city': 0 };
 
-      response.data.filter(bar => bar.application === this.application).forEach(item => {
+      let filteredData = response.data;
+
+            if (this.mode === 'new') {
+        // NEW APPLICATION VIEW
+        filteredData = filteredData.filter(bar =>
+          bar.application?.toLowerCase() === this.application?.toLowerCase() &&
+          bar.status !== 'Issued'
+        );
+
+      } else if (this.mode === 'permit') {
+        // PERMIT VIEW
+        filteredData = filteredData.filter(bar =>
+          bar.application?.toLowerCase() === this.application?.toLowerCase() &&
+          bar.status === 'Issued'
+        );
+      }
+      
+
+      filteredData.forEach(item => {
         // Array of all city fields
         const cities = [item.city, item.city1, item.city2, item.city3].map(c => c?.toLowerCase()).filter(Boolean);
         // Array of all province fields
@@ -276,6 +306,16 @@ export default {
 
       this.$forceUpdate(); // Force Vue to re-render the chart
       this.chartDataReady = true;
+    },
+    resetChartData() {
+      this.chartData1.datasets[0].data = [0, 0, 0, 0];
+      this.chartData2.datasets[0].data = [0, 0];
+      this.chartData3.datasets[0].data = [0];
+      this.chartData4.datasets[0].data = [0];
+      this.chartData5.datasets[0].data = [0];
+      this.chartData6.datasets[0].data = [0];
+      this.chartData7.datasets[0].data = [0];
+      this.chartDataReady = false;
     }
   }
 }

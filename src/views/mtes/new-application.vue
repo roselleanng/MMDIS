@@ -73,37 +73,37 @@ import router from '../../router/index';
 export default {
   methods: {
     navigateToFTTAdashboard() {
-      router.push('/ftta');
+      router.push('/ftta?type=new');
     },
     navigateToEPdashboard() {
-      router.push('/ep');
+      router.push('/ep?type=new');
     },
     navigateToMPSAdashboard() {
-      router.push('/mpsa');
+      router.push('/mpsa?type=new');
     },
     navigateToISAGdashboard() {
-      router.push('/isag');
+      router.push('/isag?type=new');
     },
     navigateToMBdashboard() {
-      router.push('/mb');
+      router.push('/mb?type=new');
     },
     navigateToMPLdashboard() {
-      router.push('/mpl');
+      router.push('/mpl?type=new');
     },
     navigateToMPPdashboard() {
-      router.push('/mpp');
+      router.push('/mpp?type=new');
     },
     navigateToOTPdashboard() {
-      router.push('/otp');
+      router.push('/otp?type=new');
     },
     navigateToSSMCdashboard() {
-      router.push('/ssmc');
+      router.push('/ssmc?type=new');
     },
     navigateToAMTRDdashboard() {
-      router.push('/amtrd');
+      router.push('/amtrd?type=new');
     },
     navigateToMOEPdashboard() {
-      router.push('/moep');
+      router.push('/moep?type=new');
     },
   }
 };

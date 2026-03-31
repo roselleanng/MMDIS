@@ -1,14 +1,9 @@
-// main.js
-
 import { createApp } from 'vue';
 import router from './router';
 import App from './App.vue';
+import axios from 'axios';
 
-
-// Create and mount the Vue app
-// const app = createApp({});
-// app.use(router);
-// app.mount('#app');
+axios.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
 
 createApp(App)
   .use(router)

@@ -29,12 +29,12 @@
   export default {
     methods: {
       navigateToFirstPage() {
-        // Use router.push to navigate to ''
-        window.location.href = '/mmd/mtes/new-application';
+        // Use router.push to navigate to '/applicationpage'
+        window.location.href = '/new-application';
       },
       navigateToSecondPage() {
         // Use router.push to navigate to '/permitpage'
-        window.location.href = '#';
+        window.location.href = '/permit';
       },
     }
   };

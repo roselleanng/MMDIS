@@ -18,6 +18,10 @@ export default {
     components: { Pie },
     props: {
         application: String,
+        mode: {
+      type: String,
+      default: 'new' // safety default
+    }
     },
     data() {
         return {
@@ -38,7 +42,16 @@ export default {
     },
     mounted() {
         this.fetchProvinceData();
-        
+    },
+    watch: {
+        application: function() {
+            this.resetChartData();
+            this.fetchProvinceData();
+        },
+        mode: function() {
+            this.resetChartData();
+            this.fetchProvinceData();
+        }
     },
     methods: {
         fetchProvinceData() {
@@ -56,9 +69,25 @@ export default {
                         'iligan city': 0,
                     };
 
-                    response.data
-                        .filter(pie => pie.application === this.application)
-                        .forEach(item => {
+                    let filteredData = response.data;
+
+
+                        if (this.mode === 'new') {
+                        // NEW APPLICATION VIEW
+                        filteredData = filteredData.filter(pie =>
+                        pie.application?.toString().toLowerCase().trim() === this.application?.toString().toLowerCase().trim() &&
+                        pie.status !== 'Issued'
+                        );
+
+                    } else if (this.mode === 'permit') {
+                        // PERMIT VIEW
+                        filteredData = filteredData.filter(bar =>
+                        bar.application?.toString().toLowerCase().trim() === this.application?.toString().toLowerCase().trim() &&
+                        bar.status === 'Issued'
+                        );
+                    }
+
+                    filteredData.forEach(item => {
                             // Convert province values to lowercase for consistency
                             const provinces = [
                                 item.province?.toLowerCase(),
@@ -107,6 +136,10 @@ export default {
             data[6] = cityCounts['iligan city'];
             this.$forceUpdate(); // Force Vue to re-render the chart
             this.chartDataReady = true;
+        },
+        resetChartData() {
+            this.chartData.datasets[0].data = [0, 0, 0, 0, 0, 0, 0];
+            this.chartDataReady = false;
         }
     }
 }

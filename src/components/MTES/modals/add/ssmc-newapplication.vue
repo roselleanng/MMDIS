@@ -207,11 +207,16 @@
                     <option value="- - -">- - -</option>
                   </select>
                 </div>
+                                <!-- Conditional input for Expiration Date when status is "Issued" -->
+                                <div class="flex justify-between border-t" v-if="detailstoadd.status === 'Issued'">
+                  <p class="mr-5 mt-4">Expiration Date:<span class="pl-1 text-red-500">*</span></p>
+                  <input v-model="detailstoadd.expiration_date" type="date" class="mt-4 w-96 pl-1 pr-1 bg-green-300 rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
+                </div>
             </div>
           </div>
         </div>
         <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
-          <button @click="showModal = false" type="button" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 text-base font-medium text-white hover:bg-red-700 bg-red-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 sm:ml-3 sm:w-auto sm:text-sm">
+          <button @click="$emit('close')" type="button" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-red-800 text-base font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 sm:ml-3 sm:w-auto sm:text-sm">
             Close
           </button>
           <button @click="submit" type="button" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-green-800 text-base font-medium text-white hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 sm:ml-3 sm:w-auto sm:text-sm">
@@ -230,6 +235,12 @@ import axios from 'axios';
 import { API_BASE_URL } from '../../../../config';
 
 export default {
+  props: {
+    show: {
+      type: Boolean,
+      default: false
+    }
+  },
   data() {
     return {
       details: [],
@@ -258,6 +269,7 @@ export default {
         oth_rs: '',
         status: '',
         stage_of_processing: '-',
+        expiration_date: '',
         application: 'ssmc'
       },
     };
@@ -381,6 +393,9 @@ export default {
       if (this.detailstoadd.status === 'On-going Process' && !this.selectedOngoingProcessing) {
         missingFields.push('Stage of Processing');
       }
+      if (this.detailstoadd.status === 'Issued' && !this.detailstoadd.expiration_date) {
+        missingFields.push('Expiration Date');
+      }
 
       if (missingFields.length > 0) {
         alert(`Please fill in the following required fields:\n\n${missingFields.join('\n')}`);
@@ -414,6 +429,11 @@ export default {
         } else {
             formData.append('stage_of_processing', '-');
             this.detailstoadd.stage_of_processing = '-';
+        }
+
+                // Include expiration_date if status is "Issued"
+                if (this.detailstoadd.status === 'Issued') {
+            formData.append('expiration_date', this.detailstoadd.expiration_date);
         }
 
         this.visibleLocations.forEach((_, index) => {

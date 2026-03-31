@@ -43,8 +43,23 @@
       <!-- Search Input Field -->
       <input v-model="searchQuery" @input="debouncedSearch" type="search" id="default-search" class="block w-full p-4 text-sm text-gray-900 border border-gray-300 rounded-r-lg bg-gray-50 focus:ring-blue-500 focus:border-blue-500" placeholder="Search month, client, or mmd personnel ..." required />
     </div>
-    <!-- Add Button -->
-    <AddBtn @click="showModal = true" />
+
+      <div class="flex content-center gap-3">
+        <button 
+            v-if="!isMMD" 
+            @click="showModal = true" 
+            class="bg-amber-400 hover:bg-amber-100 h-12 px-4 text-black rounded-lg">
+            Add New Data
+        </button>
+
+        <!--<button
+            v-if="!isMMD"
+            @click="showDeleteAllModal = true"
+            class="bg-red-600 hover:bg-red-700 text-white h-12 px-4 rounded-lg font-medium shadow">
+            Delete All
+        </button>-->
+      </div>
+
   </div>
 
     <!-- Table Section -->
@@ -71,7 +86,7 @@
               </span>
             </th>
             <th scope="col" class="px-6 py-3 text-center">Proof of MOV Uploaded</th>
-            <th scope="col" class="px-6 py-3 flex justify-center">Action</th>
+            <th v-if="!isMMD" scope="col" class="px-6 py-3 flex justify-center">Action</th>
           </tr>
         </thead>
         <tbody>
@@ -86,8 +101,8 @@
             </td>
             <td class="px-6 py-4 flex justify-center">
             <!-- edit entry -->
-            <button @click="openUpdateModal(entry.ID)" class="bg-grey-100 text-white px-2 py-1 rounded"><img src="../../assets/icons/edit.png" style="width: 25px;"></button> 
-            <button @click="deleteEntry(entry.ID)" class="bg-grey-100 text-white px-2 py-1 rounded "><img src="../../assets/icons/remove.png" style="width: 20px;"></button>
+            <button v-if="!isMMD" @click="openUpdateModal(entry.ID)" class="bg-grey-100 text-white px-2 py-1 rounded"><img src="../../assets/icons/edit.png" style="width: 25px;"></button> 
+            <button v-if="!isMMD" @click="deleteEntry(entry.ID)" class="bg-grey-100 text-white px-2 py-1 rounded "><img src="../../assets/icons/remove.png" style="width: 20px;"></button>
             </td>
           </tr>
         </tbody>
@@ -139,12 +154,12 @@
                 </div>
 
                 <div class="mt-2 flex justify-between">
-                  <p class="mr-5">Meeting Date:</p>
+                  <p class="mr-5">Meeting Date:<span class="text-red-500">*</span></p>
                   <input v-model="newEntry.meeting_date" type="date" class="pl-1 pr-1 bg-orange-100 rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
                 </div>
 
                 <div class="mt-2 flex justify-between">
-                  <p class="mr-5">Proof of MOV:</p>
+                  <p class="mr-5">Proof of MOV:<span class="text-red-500">*</span></p>
                   <input ref="MOVpdf" type="file" accept="application/pdf" class="w-72 bg-orange-100 rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
                 </div>
 
@@ -164,6 +179,55 @@
       </div>
     </div>
 
+    <!-- Delete All Confirmation Modal -->
+    <div v-if="showDeleteAllModal" class="fixed inset-0 z-50 overflow-y-auto">
+      <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+        <!-- Background overlay -->
+        <div class="fixed inset-0 transition-opacity" aria-hidden="true">
+          <div class="absolute inset-0 bg-gray-800 opacity-75"></div>
+        </div>
+        <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+        <!-- Modal panel -->
+        <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-md sm:w-full">
+          <div class="bg-white px-6 pt-6 pb-4">
+            <!-- Icon + Title -->
+            <div class="flex items-center gap-3 mb-3">
+              <div class="flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-red-100">
+                <svg class="h-6 w-6 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
+                </svg>
+              </div>
+              <h3 class="text-lg font-bold text-gray-900">Delete All Records</h3>
+            </div>
+            <!-- Message -->
+            <p class="text-sm text-gray-600 mb-1">
+              Are you sure you want to <span class="font-semibold text-red-600">delete ALL</span> Ore Sample Transport Certificate entries?
+            </p>
+            <p class="text-sm text-gray-500">
+              This action <span class="font-semibold">cannot be undone</span>. All records and associated PDF files will be permanently removed.
+            </p>
+          </div>
+          <!-- Buttons -->
+          <div class="bg-gray-50 px-6 py-4 flex justify-end gap-3">
+            <button
+              @click="showDeleteAllModal = false"
+              type="button"
+              class="inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-sm font-medium text-gray-700 hover:bg-gray-100 focus:outline-none">
+              Cancel
+            </button>
+            <button
+              @click="confirmDeleteAll"
+              type="button"
+              class="inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-red-600 text-sm font-medium text-white hover:bg-red-700 focus:outline-none">
+              Yes, Delete All
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+
     <!-- Update Modal -->
     <div v-if="isUpdateModalOpen" class="fixed inset-0 overflow-y-auto" aria-modal="true" role="dialog">
       <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
@@ -179,7 +243,7 @@
             <div class="sm:flex sm:items-start">
               <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
                 <div class="mt-2 flex justify-between">
-                  <p class="mr-5">Select Month:</p>
+                  <p class="mr-5">Select Month:<span class="text-red-500">*</span></p>
                   <select v-model="updateEntry.month" class="w-72 bg-orange-100 rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
                     <option>JANUARY</option>
                     <option>FEBRUARY</option>
@@ -196,24 +260,38 @@
                   </select>
                 </div>
                 <div class="mt-2 flex flex-col">
-                  <label for="meetings_conducted" class="text-gray-700">PCMRB Meetings Conducted/Participated</label>
+                  <label for="meetings_conducted" class="text-gray-700">PCMRB Meetings Conducted/Participated<span class="text-red-500">*</span></label>
                   <textarea v-model="updateEntry.meetings_conducted" id="meetings_conducted" rows="4" class="w-full bg-orange-100 rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"></textarea>
                 </div>
                 
                 <div class="mt-2 flex justify-between">
-                  <p class="mr-5">Province/HUC:</p>
+                  <p class="mr-5">Province/HUC:<span class="text-red-500">*</span></p>
                   <input v-model="updateEntry.province_huc" type="text" class="w-72 bg-orange-100 rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
                 </div>
 
                 <div class="mt-2 flex justify-between">
-                  <p class="mr-5">Meeting Date:</p>
+                  <p class="mr-5">Meeting Date:<span class="text-red-500">*</span></p>
                   <input v-model="updateEntry.meeting_date" type="date" class="pl-1 pr-1 bg-orange-100 rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
                 </div>
+          
+                <div class="mt-2 flex">
+                    <!-- Label -->
+                    <p class="mr-5 w-40">Proof of MOV:<span class="text-red-500">*</span></p>
 
-                <div class="mt-2 flex justify-between">
-                  <p class="mr-5">Proof of MOV:</p>
-                  <input ref="MOVpdf" type="file" accept="application/pdf" @change="handleFileUpload" class="w-72 bg-orange-100 rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
-                </div>
+                    <!-- File section -->
+                    <div class="flex flex-col">
+                      <input
+                        type="file"
+                        accept="application/pdf"
+                        @change="handleFileUpload($event, 'MOVpdf')"
+                        class="bg-orange-100 rounded-md border-gray-300 shadow-sm"
+                      >
+                      <div v-if="updateEntry.MOVpdf" class="flex items-center mt-1">
+                        <input type="checkbox" v-model="deleteMOV" class="mr-2">
+                        <label>Delete existing</label>
+                      </div>
+                  </div>
+              </div>
 
               </div>
             </div>
@@ -256,9 +334,12 @@ data() {
     isUpdateModalOpen: false,
     updateEntry: this.getEmptyEntry(),
     debouncedSearch: debounce(this.search, 300),
+    userRole: localStorage.getItem('userRole') || '',
+    showDeleteAllModal: false, // State for delete all confirmation modal
     //
     //
-    file: null 
+    file: null,
+    deleteMOV: false, 
   };
 },
 
@@ -302,7 +383,10 @@ computed: {
 
   year() {
     return new Date().getFullYear();
-  }
+  },
+  isMMD() {
+      return this.userRole === 'mmd';
+    }
 },
 methods: {
 
@@ -315,6 +399,19 @@ methods: {
       MOVpdf: '',
     };
   },
+
+  confirmDeleteAll() {
+      this.showDeleteAllModal = false;
+      axios.delete(`${API_BASE_URL}/api/MonitoringPCMRB/deleteAllRecords`)
+        .then(() => {
+          this.pcmrb = [];
+          alert("All entries deleted successfully.");
+        })
+        .catch(error => {
+          console.error(error);
+          alert("Failed to delete all entries.");
+        });
+    },
 
   fetchPCMRB() {
     axios.get(`${API_BASE_URL}/api/MonitoringPCMRB`)
@@ -365,33 +462,19 @@ methods: {
         alert('Entry added successfully!');
       })
       .catch(error => {
-        console.error('Error adding new entry:', error);
-        let errorMessage = 'Failed to add entry. Please try again.';
-        if (error.response) {
-          if (error.response.data && typeof error.response.data === 'string') {
-            errorMessage = 'Failed to add entry: ' + error.response.data;
-          } else if (error.response.data && error.response.data.message) {
-            errorMessage = 'Failed to add entry: ' + error.response.data.message;
-          } else {
-            errorMessage = 'Failed to add entry. Status: ' + error.response.status;
-          }
-        } else {
-          errorMessage = 'Failed to add entry: ' + error.message;
-        }
-        alert(errorMessage);
+        console.error('Error adding entry:', error.response ? error.response.data : error.message);
       });
   },
 
-  openPDF(pdfPath) {
-    const index = pdfPath.indexOf('/');
-    const pdfFinalPath = pdfPath.slice(index + 1);
-    const url = `${API_BASE_URL}/storage/${pdfFinalPath}`;
-    if (pdfPath) {
+  openPDF(filePath) {
+      if (!filePath) {
+        alert('No PDF uploaded.');
+        return;
+      }
+      const cleanedPath = filePath.replace('public/', '');
+      const url = `${API_BASE_URL}/storage/${cleanedPath}`;
       window.open(url, '_blank');
-    } else {
-      console.error('PDF URL not found');
-    }
-  },
+    },
 
   search() {
     axios.get(`${API_BASE_URL}/api/MonitoringPCMRB/search?query=${this.searchQuery}`)
@@ -452,12 +535,16 @@ methods: {
     if (entry) {
       this.updateEntry = { ...entry };
       this.isUpdateModalOpen = true;
+      this.file = null;        // ✅ reset
+      this.deleteMOV = false;
     }
   },
 
   closeModal() {
     this.isUpdateModalOpen = false; 
     this.updateEntry = this.getEmptyEntry();
+    this.file = null;        // ✅ reset
+    this.deleteMOV = false;
   },
   //
   //
@@ -467,6 +554,12 @@ methods: {
   },
 
   async handleUpdate() {
+
+        // Client-side validation for required fields
+        if (!this.newEntry.month || !this.newEntry.meetings_conducted || !this.newEntry.province_huc || !this.newEntry.meeting_date || !fileInput) {
+      alert('All fields are required, including the Proof of MOV file.');
+      return;
+    }
       console.log(this.file);
 
       // Validate file size
@@ -488,9 +581,16 @@ methods: {
       formData.append('province_huc', this.updateEntry.province_huc);
       formData.append('meeting_date', this.updateEntry.meeting_date);
 
-      if (this.file) {
-        formData.append('MOVpdf', this.file);
-      }
+      // Append the file if selected
+        // ✅ If new file uploaded
+        if (this.file) {
+          formData.append('MOVpdf', this.file);
+        }
+
+        // ✅ If delete checkbox checked
+        if (this.deleteMOV) {
+          formData.append('clear_MOVpdf', '1');
+        }
 
       axios.post(`${API_BASE_URL}/api/MonitoringPCMRB/${this.updateEntry.ID}`, formData, {
         headers: { 'Content-Type': 'multipart/form-data' }
@@ -498,6 +598,10 @@ methods: {
       .then(res => {
         const idx = this.pcmrb.findIndex(e => e.ID === this.updateEntry.ID);
         if (idx !== -1) this.pcmrb[idx] = res.data;
+
+        // Close the modal after successful update
+        this.file = null;        // ✅ reset file
+        this.deleteMOV = false;  // reset checkbox
         this.closeModal();
       alert('Entry updated successfully!');
       })
@@ -510,6 +614,8 @@ methods: {
 
 mounted() {
   this.fetchPCMRB();
+  console.log('userRole:', this.userRole);
+  console.log('isMMD:', this.isMMD);
 }
 };
 </script>

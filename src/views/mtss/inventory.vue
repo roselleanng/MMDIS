@@ -52,9 +52,27 @@
           </div>
         </div>
       </div>
-      <div class="flex content-center">
-        <button @click="downloadSummary" class="mr-4 bg-blue-400 hover:bg-blue-100 p-2 text-white rounded-lg">Download Summary</button>
-        <button @click="showModal = true" class="mr-4 bg-amber-400 hover:bg-amber-100 p-2 text-black rounded-lg">Add New Data</button>
+
+      <div class="flex content-center gap-3">
+        <button 
+            @click="downloadSummary" 
+            class="bg-blue-400 hover:bg-blue-100 h-12 px-4 text-white rounded-lg">
+            Download Summary
+        </button>
+
+        <button 
+            v-if="!isMMD" 
+            @click="showModal = true" 
+            class="bg-amber-400 hover:bg-amber-100 h-12 px-4 text-black rounded-lg">
+            Add New Data
+        </button>
+
+        <!--<button
+            v-if="!isMMD"
+            @click="showDeleteAllModal = true"
+            class="bg-red-600 hover:bg-red-700 text-white h-12 px-4 rounded-lg font-medium shadow">
+            Delete All
+        </button>-->
       </div>
     </div>
 
@@ -105,7 +123,7 @@
             </th>
             <th scope="col" class="px-6 py-3">MMD Personnel</th>
             <th scope="col" class="px-6 py-3 text-center">Proof of MOV Uploaded</th>
-            <th scope="col" class="px-6 py-3 flex justify-center">Action</th>
+            <th v-if="!isMMD" scope="col" class="px-6 py-3 flex justify-center">Action</th>
           </tr>
         </thead>
         <tbody>
@@ -115,18 +133,20 @@
             <td class="px-6 py-4">{{ entry.province }}</td>
             <td class="px-6 py-4">{{ entry.city_municipality }}</td>
             <td class="px-6 py-4">{{ entry.barangay }}</td>
-            <td class="px-6 py-4">{{ entry.sitio }}</td>
-            <td class="px-6 py-4">{{ entry.travel_date_from }} to {{ entry.travel_date_to }}</td>
+            <td class="px-6 py-4">{{ entry.sitio || '' }}</td>
+            <td class="px-6 py-4">
+            {{ entry.travel_date_from ? entry.travel_date_from + (entry.travel_date_to ? ' to ' + entry.travel_date_to : '') : '' }}
+            </td>
             <td class="px-6 py-4">{{ entry.report_date }}</td>
             <td class="px-6 py-4">{{ entry.transmittal_date }}</td>
             <td class="px-6 py-4">{{ entry.released_date }}</td>
-            <td class="px-6 py-4">{{ entry.mmd_personnel }}</td>
+            <td class="px-6 py-4">{{ entry.mmd_personnel || '' }}</td>
             <td class="px-6 py-4 text-center">
               <button @click="openPDF(entry.MOVpdf)" class="bg-red-500 text-white px-2 py-1 rounded">View</button>
             </td>
             <td class="px-6 py-4 flex justify-center">
-              <button @click="openUpdateModal(entry.id)" class="bg-grey-100 text-white px-2 py-1 rounded"><img src="../../assets/icons/edit.png" style="width: 25px;"></button>
-              <button @click="deleteEntry(entry.id)" class="bg-grey-100 text-white px-2 py-1 rounded "><img src="../../assets/icons/remove.png" style="width: 20px;"></button>
+              <button v-if="!isMMD" @click="openUpdateModal(entry.id)" class="bg-grey-100 text-white px-2 py-1 rounded"><img src="../../assets/icons/edit.png" style="width: 25px;"></button>
+              <button v-if="!isMMD" @click="deleteEntry(entry.id)" class="bg-grey-100 text-white px-2 py-1 rounded "><img src="../../assets/icons/remove.png" style="width: 20px;"></button>
             </td>
           </tr>
         </tbody>
@@ -259,6 +279,57 @@
       </div>
       <!-- End Modal -->
 
+    <!-- Delete All Confirmation Modal -->
+    <div v-if="showDeleteAllModal" class="fixed inset-0 z-50 overflow-y-auto">
+      <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+        <!-- Background overlay -->
+        <div class="fixed inset-0 transition-opacity" aria-hidden="true">
+          <div class="absolute inset-0 bg-gray-800 opacity-75"></div>
+        </div>
+        <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+        <!-- Modal panel -->
+        <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-md sm:w-full">
+          <div class="bg-white px-6 pt-6 pb-4">
+            <!-- Icon + Title -->
+            <div class="flex items-center gap-3 mb-3">
+              <div class="flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-red-100">
+                <svg class="h-6 w-6 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
+                </svg>
+              </div>
+              <h3 class="text-lg font-bold text-gray-900">Delete All Records</h3>
+            </div>
+            <!-- Message -->
+            <p class="text-sm text-gray-600 mb-1">
+              Are you sure you want to <span class="font-semibold text-red-600">delete ALL</span> Ore Sample Transport Certificate entries?
+            </p>
+            <p class="text-sm text-gray-500">
+              This action <span class="font-semibold">cannot be undone</span>. All records and associated PDF files will be permanently removed.
+            </p>
+          </div>
+          <!-- Buttons -->
+          <div class="bg-gray-50 px-6 py-4 flex justify-end gap-3">
+            <button
+              @click="showDeleteAllModal = false"
+              type="button"
+              class="inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-sm font-medium text-gray-700 hover:bg-gray-100 focus:outline-none">
+              Cancel
+            </button>
+            <button
+              @click="confirmDeleteAll"
+              type="button"
+              class="inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-red-600 text-sm font-medium text-white hover:bg-red-700 focus:outline-none">
+              Yes, Delete All
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- End Delete All Confirmation Modal -->
+
+
+
       <!-- This is the modal for update method -->
       <div v-if="isUpdateModalOpen" class="fixed inset-0 overflow-y-auto">
         <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
@@ -274,7 +345,7 @@
               <div class="sm:flex sm:items-start">
                 <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
                   <div class="mt-2 flex justify-between">
-                    <p class="mr-5">Month:</p>
+                    <p class="mr-5">Month:<span class="text-red-500">*</span></p>
                     <select v-model="updateEntry.month" class="w-72 bg-orange-100 rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
                       <option>JANUARY</option>
                       <option>FEBRUARY</option>
@@ -291,7 +362,7 @@
                     </select>
                   </div>
                   <div class="mt-2 flex justify-between">
-                    <p class="mr-5">Province:</p>
+                    <p class="mr-5">Province:<span class="text-red-500">*</span></p>
                     <select v-model="updateEntry.province" class="w-72 bg-orange-100 rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
                       <option>BUKIDNON</option>
                       <option>CAMUIGUIN</option>
@@ -303,11 +374,11 @@
                     </select>
                   </div>
                   <div class="mt-2 flex justify-between">
-                    <p class="mr-5">City/Municipality:</p>
+                    <p class="mr-5">City/Municipality:<span class="text-red-500">*</span></p>
                     <input v-model="updateEntry.city_municipality" type="text" class="w-72 bg-orange-100 rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50" />
                   </div>
                   <div class="mt-2 flex justify-between">
-                    <p class="mr-5">Barangay:</p>
+                    <p class="mr-5">Barangay:<span class="text-red-500">*</span></p>
                     <input v-model="updateEntry.barangay" type="text" class="w-72 bg-orange-100 rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50" />
                   </div>
                   <div class="mt-2 flex justify-between">
@@ -336,10 +407,25 @@
                     <p class="mr-5">MMD Personnel:</p>
                     <input v-model="updateEntry.mmd_personnel" type="text" class="w-72 bg-orange-100 rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
                   </div>
-                  <div class="mt-2 flex justify-between">
-                    <p class="mr-5">Proof of MOV:</p>
-                    <input ref="MOVpdf" type="file" accept="application/pdf" @change="handleFileUpload" class="w-72 bg-orange-100 rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
+                  <div class="mt-2 flex">
+                    <!-- Label -->
+                    <p class="mr-5 w-40">Proof of MOV:</p>
+
+                    <!-- File section -->
+                    <div class="flex flex-col">
+                      <input
+                        type="file"
+                        accept="application/pdf"
+                        @change="handleFileUpload($event, 'MOVpdf')"
+                        class="bg-orange-100 rounded-md border-gray-300 shadow-sm"
+                      >
+                      <div v-if="updateEntry.MOVpdf" class="flex items-center mt-1">
+                        <input type="checkbox" v-model="deleteMOV" class="mr-2">
+                        <label>Delete existing</label>
+                      </div>
+                    </div>
                   </div>
+                  
                 </div>
               </div>
             </div>
@@ -387,7 +473,11 @@ export default {
       isUpdateModalOpen: false, // State to track if the update modal is open
       updateEntry: this.getEmptyEntry(), // Object to store the entry being updated
       months: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'],
-      file: null
+      file: null,
+      userRole: localStorage.getItem('userRole') || '',
+
+      deleteMOV: false, 
+      showDeleteAllModal: false, // State for delete all confirmation modal
     };
   },
   computed: {
@@ -432,6 +522,9 @@ export default {
     },
     year() {
       return new Date().getFullYear();
+    },
+    isMMD() {
+      return this.userRole === 'mmd';
     }
     
   },
@@ -453,6 +546,21 @@ export default {
         MOVpdf: null,
       };
     },
+
+
+    confirmDeleteAll() {
+      this.showDeleteAllModal = false;
+      axios.delete(`${API_BASE_URL}/api/MonitoringInventory/deleteAllRecords`)
+        .then(() => {
+          this.inventory = [];
+          alert("All entries deleted successfully.");
+        })
+        .catch(error => {
+          console.error(error);
+          alert("Failed to delete all entries.");
+        });
+    },
+
     fetchInventory() {
       axios.get(`${API_BASE_URL}/api/MonitoringInventory`)
         .then(response => {
@@ -465,7 +573,7 @@ export default {
     addNewEntry() {
 
       // Client-side validation for required fields
-      const requiredFields = ['month', 'province', 'city_municipality', 'barangay', 'sitio', 'travel_date_from', 'travel_date_to', 'report_date', 'transmittal_date', 'released_date', 'mmd_personnel'];
+      const requiredFields = ['month', 'province', 'city_municipality', 'barangay'];
       for (const field of requiredFields) {
         if (!this.newEntry[field]) {
           alert(`The field "${field.replace(/_/g, ' ')}" is required.`);
@@ -492,6 +600,7 @@ export default {
       formData.append('transmittal_date', this.newEntry.transmittal_date);
       formData.append('released_date', this.newEntry.released_date);
       formData.append('mmd_personnel', this.newEntry.mmd_personnel);
+
       if (fileInput) {
         formData.append('MOVpdf', fileInput);
       }
@@ -559,15 +668,14 @@ export default {
 
       return filtered;
     },
-    openPDF(pdfPath) {
-      const index = pdfPath.indexOf('/');
-      const pdfFinalPath = pdfPath.slice(index + 1);
-      const url = `${API_BASE_URL}/storage/${pdfFinalPath}`;
-      if (pdfPath) {
-        window.open(url, '_blank');
-      } else {
-        console.error('PDF URL not found');
+    openPDF(filePath) {
+      if (!filePath) {
+        alert('No PDF uploaded.');
+        return;
       }
+      const cleanedPath = filePath.replace('public/', '');
+      const url = `${API_BASE_URL}/storage/${cleanedPath}`;
+      window.open(url, '_blank');
     },
 
     deleteEntry(id) {
@@ -592,12 +700,15 @@ export default {
       if (entry) {
         this.updateEntry = { ...entry }; // Copy the entry data to `updateEntry`
         this.isUpdateModalOpen = true; // Open the update modal
+        this.deleteMOV = false;
+        this.file = null;       // ✅ reset file
       }
     },
 
     closeModal() {
       this.isUpdateModalOpen = false; 
       this.updateEntry = this.getEmptyEntry();
+      this.file = null; 
     },
     //
     //
@@ -605,56 +716,97 @@ export default {
     handleFileUpload(event) {
       this.file = event.target.files[0];
     },
+
+    
     // Method to handle the update process
     async handleUpdate() {
-      console.log(this.file)
 
-      if (this.file && this.file.size > 5 * 1024 * 1024) {
-        alert('File size exceeds 5MB.');
-        return;
-      }
-
-      if (this.file) {
-        // Validate file type
-        if (this.file.type !== 'application/pdf') {
-          alert('Only PDF files are allowed.');
+      // Client-side validation for required fields
+      const requiredFields = ['month', 'province', 'city_municipality', 'barangay'];
+      for (const field of requiredFields) {
+        if (!this.updateEntry[field]) {
+          alert(`The field "${field.replace(/_/g, ' ')}" is required.`);
           return;
         }
-    } 
-
-
-      // const formData = this.updateEntry;
-      const formData = new FormData();
-      formData.append('month', this.updateEntry.month);
-      formData.append('province', this.updateEntry.province);
-      formData.append('city_municipality', this.updateEntry.city_municipality);
-      formData.append('barangay', this.updateEntry.barangay);
-      formData.append('sitio', this.updateEntry.sitio);
-      formData.append('travel_date_from', this.updateEntry.travel_date_from);
-      formData.append('travel_date_to', this.updateEntry.travel_date_to);
-      formData.append('report_date', this.updateEntry.report_date);
-      formData.append('transmittal_date', this.updateEntry.transmittal_date);
-      formData.append('released_date', this.updateEntry.released_date);
-      formData.append('mmd_personnel', this.updateEntry.mmd_personnel);
-
-    // Append the file if selected
-    if (this.file) {
-      formData.append('MOVpdf', this.file);
-    }
-
-    axios.post(`${API_BASE_URL}/api/MonitoringInventory/${this.updateEntry.id}`, formData)
-    .then(response => {
-      const index = this.inventory.findIndex(entry => entry.id === this.updateEntry.id);
-      if (index !== -1) {
-        this.inventory[index] = response.data; // Directly assign the updated data to the entry in the array
       }
-      this.closeModal(); // Close the modal after successful update
-      alert('Entry updated successfully!');
-    })
-    .catch(error => {
-      console.error('Error updating entry:', error);
-      alert('Failed to update the entry.');
-    });
+
+        console.log(this.file)
+
+        if (this.file && this.file.size > 5 * 1024 * 1024) {
+          alert('File size exceeds 5MB.');
+          return;
+        }
+
+        if (this.file) {
+          // Validate file type
+          if (this.file.type !== 'application/pdf') {
+            alert('Only PDF files are allowed.');
+            return;
+          }
+      } 
+
+
+        // const formData = this.updateEntry;
+        const formData = new FormData();
+        formData.append('month', this.updateEntry.month);
+        formData.append('province', this.updateEntry.province);
+        formData.append('city_municipality', this.updateEntry.city_municipality);
+        formData.append('barangay', this.updateEntry.barangay);
+
+        if (this.updateEntry.sitio) {
+          formData.append('sitio', this.updateEntry.sitio);
+        }
+
+        if (this.updateEntry.travel_date_from) {
+          formData.append('travel_date_from', this.updateEntry.travel_date_from);
+        }
+
+        if (this.updateEntry.travel_date_to) {
+          formData.append('travel_date_to', this.updateEntry.travel_date_to);
+        }
+
+        if (this.updateEntry.report_date) {
+          formData.append('report_date', this.updateEntry.report_date);
+        }
+
+        if (this.updateEntry.transmittal_date) {
+          formData.append('transmittal_date', this.updateEntry.transmittal_date);
+        }
+
+        if (this.updateEntry.released_date) {
+          formData.append('released_date', this.updateEntry.released_date);
+        }
+
+        if (this.updateEntry.mmd_personnel) {
+          formData.append('mmd_personnel', this.updateEntry.mmd_personnel);
+        }
+
+      // Append the file if selected
+        // ✅ If new file uploaded
+        if (this.file) {
+          formData.append('MOVpdf', this.file);
+        }
+
+        // ✅ If delete checkbox checked
+        if (this.deleteMOV) {
+          formData.append('clear_MOVpdf', '1');
+        }
+
+      axios.post(`${API_BASE_URL}/api/MonitoringInventory/${this.updateEntry.id}`, formData)
+      .then(response => {
+        const index = this.inventory.findIndex(entry => entry.id === this.updateEntry.id);
+        if (index !== -1) {
+          this.inventory[index] = response.data; // Directly assign the updated data to the entry in the array
+        }
+
+        this.file = null;        // ✅ reset file
+        this.deleteMOV = false;
+        this.closeModal(); // Close the modal after successful update
+        alert('Entry updated successfully!');
+      })
+      .catch(error => {
+        console.error('Error adding entry:', error.response ? error.response.data : error.message);
+      });
     },
     downloadSummary() {
       const data = this.filteredEntries;
@@ -714,6 +866,8 @@ export default {
   },
   mounted() {
     this.fetchInventory();
+    console.log('userRole:', this.userRole);
+    console.log('isMMD:', this.isMMD);
   },
 };
 </script>

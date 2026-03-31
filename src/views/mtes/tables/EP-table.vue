@@ -21,7 +21,7 @@
         </div>
         <input v-model="searchQuery" @input="debouncedSearch" type="search" id="default-search" class="block w-full p-4 text-sm text-gray-900 border border-gray-300 rounded-r-lg bg-gray-50 focus:ring-blue-500 focus:border-blue-500" placeholder="Search Tenement Name or Location of the application ..." required />
       </div>
-      <div class="flex lg:justify-end mb-5">
+      <div class="flex lg:justify-end mb-5" v-if="type !== 'permit' && userRole !== 'mmd'">
         <button @click="navigateTomodal" class="text-black bg-amber-400 hover:bg-amber-100 hover:text-gray-950 focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded-lg text-sm pl-4 pr-2 py-2 text-center flex items-center mr-8">New Application<img class="w-4 m-2" src="../../../assets/icons/plus.png"></button>
       </div>
     </div>
@@ -32,12 +32,31 @@
         <div class="flex justify-between items-center p-4" style="border-bottom: 1px solid #ddd;"> 
           <h2 class="text-lg font-bold">Comments</h2>
         </div>
+
         <div class="p-4">
-          <p>{{ selectedDetail?.comments || 'No comments available' }}</p>
+          <textarea 
+            v-model="selectedDetail.comments"
+            class="w-full border rounded p-2"
+            rows="4"
+          ></textarea>
         </div>
-        <div class="p-4 text-right" style="border-top: 1px solid #ddd;">
-          <button @click="closeComment" class="py-1 px-2 rounded cursor-pointer hover:bg-red-700 bg-red-800 text-white">Close</button>
+
+        <div class="p-4 text-right space-x-2">
+          <button 
+            @click="updateComment"
+            class="py-1 px-3 rounded bg-green-700 text-white"
+          >
+            Save
+          </button>
+
+          <button 
+            @click="closeComment"
+            class="py-1 px-3 rounded bg-red-800 text-white"
+          >
+            Cancel
+          </button>
         </div>
+
       </div>
     </div>
 
@@ -78,7 +97,7 @@
           <tr v-for="(detail, index) in filteredEntries" :key="index">
             <td class="border text-center p-2">{{ detail.stage_of_processing }}</td>
             <td class="border text-center p-2">{{ detail.status }}</td>
-            <td class="border text-center p-2">{{ detail.tenement_number }}</td>
+            <td class="border text-center p-2">{{ detail.tenement_number}}</td>
             <td class="border text-center p-2">{{ detail.tenement_name }}</td>
             <td class="border text-center p-2">{{ calculateRowArea(detail) }}</td>
             <td class="border text-center p-2">{{ detail.date_filed }}</td>
@@ -103,7 +122,10 @@
                 </div>
 
                 <!-- Delete Button -->
-                <button @click="deleteDetail(detail.id)" class="rounded">
+                <button 
+                  v-if="userRole !== 'mmd'"
+                  @click="deleteDetail(detail.id)" 
+                  class="rounded">
                   <img src="../../../assets/icons/remove.png" class="w-4">
                 </button>
               </div>
@@ -123,6 +145,9 @@ import { addDetail, viewDetail, detailToggle, detail_id } from '../dashboards/EP
 
 export default {
   name: 'typeofapp',
+  props: {
+    type: String
+  },
   data() {
     return {
       details: [],
@@ -135,6 +160,7 @@ export default {
       sortKey: '',
       sortOrder: 'asc',
       totalArea: 0,
+      userRole: localStorage.getItem('userRole'),
     };
   },
   computed: {
@@ -191,12 +217,33 @@ export default {
     },
     async fetchDetails() {
       try {
-        const response = await axios.get(`${API_BASE_URL}/get_details/`);
-        this.details = response.data.filter(det => det.application == 'ep');
-      } catch (error) {
-        console.error('Error fetching details:', error);
-      }
-    },
+          const response = await axios.get(`${API_BASE_URL}/get_details/`);
+          let filteredData = response.data;
+
+          if (this.type === 'new') {
+            // FTTA applications that are NOT issued
+            filteredData = filteredData.filter(
+              det => det.application === 'ep' && det.status !== 'Issued'
+            );
+          } 
+          else if (this.type === 'permit') {
+            // FTTA applications that ARE issued
+            filteredData = filteredData.filter(
+              det => det.application === 'ep' && det.status === 'Issued'
+            );
+          } 
+          else {
+            // fallback
+            filteredData = filteredData.filter(
+              det => det.application === 'ep'
+            );
+          }
+
+          this.details = filteredData;
+        } catch (error) {
+          console.error('Error fetching details:', error);
+        }
+      },
     navigateTomodal() {
       addDetail.value = true;
     },
@@ -204,8 +251,30 @@ export default {
       detail_id.value = id;
       viewDetail.value = true; // Define your navigation logic here
     },
+    async updateComment() {
+      try {
+        const response = await axios.post(`${API_BASE_URL}/update_comment`, {
+          id: this.selectedDetail.id,
+          comments: this.selectedDetail.comments
+        });
+
+        if (response.status === 200) {
+          alert("Comment updated successfully!");
+          this.viewComment = false;
+
+          // OPTIONAL: update UI immediately
+          this.details = this.details.map(d =>
+            d.id === this.selectedDetail.id
+              ? { ...d, comments: this.selectedDetail.comments }
+              : d
+          );
+        }
+      } catch (error) {
+        console.error("Error updating comment:", error);
+      }
+    },
     showComment(detail) {
-      this.selectedDetail = detail;
+      this.selectedDetail = { ...detail }; // clone
       this.viewComment = true;
     },
     closeComment() {

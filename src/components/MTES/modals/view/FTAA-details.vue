@@ -58,7 +58,10 @@
                         </tr>
                         <tr>
                             <td class="border font-bold py-2 px-4 bg-green-300 w-60">Others:</td>
-                            <td class="border py-2 px-4">{{ details.others }}</td>
+                            <td class="border py-2 px-4">                            
+                                <span v-if="details.others && details.others !== 'null'">
+                                {{ details.others }}
+                            </span></td>
                         </tr>
                         <tr>
                             <td class="border font-bold py-2 px-4 bg-amber-200 w-60">Stage of Processing:</td>
@@ -113,14 +116,11 @@
     },
     data() {
         return {
-            details: [],
+            details: {},
         };
     },
     mounted() {
         this.fetchDetails();
-        this.details.forEach((detail, index) => {
-            this.checkForComment(detail.id, index);
-        });
     },
     computed: {
         filteredAreas() {
@@ -147,24 +147,29 @@
         async fetchDetails() {
             try {
                 const response = await axios.get(`${API_BASE_URL}/get_details/`);
-                this.details = response.data.find(det => det.id === parseInt(this.detail_id))
-                console.log(this.detail_id)
-                console.log(this.details)
+                this.details = response.data.find(det => det.id === parseInt(this.detail_id));
+
+                if (this.details) {
+                    this.checkForComment(this.details.id);
+                }
+
             } catch (error) {
                 console.error('Error fetching details:', error);
             }
         },
-        async checkForComment(id, index) {
+        async checkForComment(id) {
             try {
                 const response = await fetch(`/comments/has/${id}`);
                 const data = await response.json();
-                this.details[index].hasComment = data.hasComment;
+                this.details.hasComment = data.hasComment;
             } catch (error) {
                 console.error('Error fetching comment status:', error);
             }
         },
         navigateToMandatoryReqFTTA(detail_id) {
-            window.location.href = `/MandatoryRequirements/${detail_id}`;
+            this.$router.push({
+                path: `/MandatoryRequirements/${detail_id}`
+            });
         },
     }
   }

@@ -24,11 +24,26 @@
       </div>
     </div>
     <!-- Display the overall total sum -->
-    <div class="flex bg-white justify-between pl-4">
-      <h2 class="flex text-xl font-semibold">
-        There are {{ overallTotalSum }} total sum of released Area Status Clearance.
-      </h2>
-      <pdf/>
+    <div class="flex bg-white justify-between items-start px-4 py-3">
+      <div>
+        <h2 class="text-xl font-semibold">
+          There are {{ overallTotalSum }} total released Area Status Clearance for {{ activeReleasedYear || 'N/A' }}.
+        </h2>
+
+        <div class="flex flex-wrap gap-3 mt-3 text-sm font-medium">
+          <span class="bg-green-100 text-green-800 px-3 py-1 rounded-lg">
+            CSAG: {{ csagTotalSum }}
+          </span>
+          <span class="bg-blue-100 text-blue-800 px-3 py-1 rounded-lg">
+            ISAG: {{ isagTotalSum }}
+          </span>
+          <span class="bg-yellow-100 text-yellow-800 px-3 py-1 rounded-lg">
+            QUARRY: {{ quarryTotalSum }}
+          </span>
+        </div>
+      </div>
+
+      <pdf />
     </div>
 
     <div class="mt-8">
@@ -209,6 +224,13 @@ export default {
     overallTotalSum() {
       return this.csagTotalSum + this.isagTotalSum + this.quarryTotalSum;
     },
+    activeReleasedYear() {
+      const allYears = [...this.csag, ...this.isag, ...this.quarry]
+        .filter(item => item.released && !isNaN(new Date(item.released).getTime()))
+        .map(item => new Date(item.released).getFullYear());
+
+      return allYears.length ? Math.max(...allYears) : null;
+    },
 
     combinedMonthlyTotals() {
       const combinedTotals = Array(12).fill(0);
@@ -239,28 +261,29 @@ export default {
   },
   methods: {
     calculateTotals(dataset) {
-      if (!Array.isArray(dataset) || dataset.length === 0) {
+      if (!Array.isArray(dataset) || dataset.length === 0 || !this.activeReleasedYear) {
         return { totalSum: 0, monthlyData: Array(12).fill(0), provinceTotals: {} };
       }
 
-      const latestYear = Math.max(...dataset.map(item => new Date(item.released).getFullYear()));
       const monthlyData = Array(12).fill(0);
       const provinceTotals = {};
       let totalSum = 0;
 
-      dataset.forEach(item => {
-        const releaseDate = new Date(item.released);
-        if (releaseDate.getFullYear() === latestYear) {
-          totalSum++;
-          const month = releaseDate.getMonth(); // 0 = January, 11 = December
-          monthlyData[month]++;
+      dataset
+        .filter(item => item.released && !isNaN(new Date(item.released).getTime()))
+        .forEach(item => {
+          const releaseDate = new Date(item.released);
 
-          if (!provinceTotals[item.province]) {
-            provinceTotals[item.province] = 0;
+          if (releaseDate.getFullYear() === this.activeReleasedYear) {
+            totalSum++;
+            monthlyData[releaseDate.getMonth()]++;
+
+            if (!provinceTotals[item.province]) {
+              provinceTotals[item.province] = 0;
+            }
+            provinceTotals[item.province]++;
           }
-          provinceTotals[item.province]++;
-        }
-      });
+        });
 
       return { totalSum, monthlyData, provinceTotals };
     },

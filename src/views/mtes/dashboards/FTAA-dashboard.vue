@@ -14,24 +14,24 @@
     </div>
 
     <div v-if="addDetail">
-      <appdet></appdet>
+      <appdet :show="addDetail" @close="addDetail = false" />
     </div>
 
     <div v-if="viewDetail">
-      <viewdetail :detail_id="detail_id" />
+      <viewdetail :detail_id="String(detail_id)" />
     </div>
 
     <!-- Charts for summary  -->
     <div class="flex flex-row justify-center top-0 left-0 right-0 w-auto mt-8">
-      <Pie class="w-1/5 ml-12" :application="application" />
-      <BarChart class="ml-8" :application="application" />
+      <Pie class="w-1/5 ml-12" :application="application" :mode="type" />
+      <BarChart class="ml-8":application="application":mode="type"/>
     </div>
 
 
 
     <!-- Table list -->
-    <div class="w-screen"> 
-      <Tableview />
+    <div class="w-screen">
+      <Tableview :type="type" />
     </div>
   </div>
 </template>
@@ -46,8 +46,12 @@ import BarChart from '../../../components/MTES/charts/bar.vue'
 import Tableview from '../../mtes/tables/FTTA-table.vue'
 import axios from 'axios';
 import { API_BASE_URL } from '../../../config'
+import { useRoute } from 'vue-router'
 
 import { ref, onMounted } from 'vue'
+
+const route = useRoute()
+const type = ref(route.query.type || 'new') // default to 'new' if no type specified
 
 const user = ref();
 onMounted(async () => {
@@ -63,7 +67,7 @@ import { ref } from 'vue';
 const detail_id = ref('')
 const addDetail = ref(false)
 const detailToggle = () => {
-  addDetail.value = true
+  addDetail.value = !addDetail.value
 };
 const application = 'ftta'
 

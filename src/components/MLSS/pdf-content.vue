@@ -2,7 +2,16 @@
   <div ref="screen" class="flex justify-center">
     <!-- pdf-content -->
     <div style=" width: 95%;" class="p-8 mt-10" >
-        <h1 class="flex flex-col mt-18 justify-center font-bold text-center text-4xl">Area Status Clearance {{ year }}</h1>
+      <h1 class="text-4xl font-bold text-center">
+        Area Status Clearance {{ activeReleasedYear || 'N/A' }}
+      </h1>
+      <div class="text-center mt-4">
+        <p class="text-sm">
+          CSAG: {{ csagTotalSum }} | 
+          ISAG: {{ isagTotalSum }} | 
+          QUARRY: {{ quarryTotalSum }}
+        </p>
+      </div>
         <div class="ml-20">
             <h2 class="text-2xl font-bold mt-10">Commercial Sand and Gravel</h2>
             <!-- Chart Section -->
@@ -61,7 +70,7 @@
             <div class="flex bg-white justify-between pl-4">
             <h2 class="flex text-xl font-semibold">
                 <!-- csag total -->
-                Total: {{ csagTotalSum }} 
+                Total: {{ csagTotalSum }} ({{ activeReleasedYear }})
             </h2>
             </div>
         </div>
@@ -124,7 +133,7 @@
             <div class="flex bg-white justify-between pl-4">
             <h2 class="flex text-xl font-semibold">
                 <!-- isag total -->
-                Total: {{ isagTotalSum }} 
+                Total: {{ isagTotalSum }} ({{ activeReleasedYear }})
             </h2>
             </div>
         </div>
@@ -189,7 +198,8 @@
             <div class="flex bg-white justify-between pl-4">
             <h2 class="flex text-xl font-semibold">
                 <!-- quarry total -->
-                Total: {{ quarryTotalSum }} 
+               
+                Total: {{ quarryTotalSum }} ({{ activeReleasedYear }})
             </h2>
             </div>
         </div>
@@ -292,6 +302,13 @@ export default {
   };
 },
   computed: {
+    activeReleasedYear() {
+      const allYears = [...this.csag, ...this.isag, ...this.quarry]
+        .filter(item => item.released && !isNaN(new Date(item.released).getTime()))
+        .map(item => new Date(item.released).getFullYear());
+
+      return allYears.length ? Math.max(...allYears) : null;
+    },
     filteredCSAG() {
     // return this.getFilteredAndSortedData();
     },
@@ -413,27 +430,29 @@ export default {
       };
     },
     calculateTotals(dataset) {
-      if (!Array.isArray(dataset) || dataset.length === 0) {
+      if (!Array.isArray(dataset) || dataset.length === 0 || !this.activeReleasedYear) {
         return { totalSum: 0, monthlyData: Array(12).fill(0), provinceTotals: {} };
       }
 
-      const latestYear = Math.max(...dataset.map(item => new Date(item.released).getFullYear()));
       const monthlyData = Array(12).fill(0);
       const provinceTotals = {};
       let totalSum = 0;
 
-      dataset.forEach(item => {
-        const releaseDate = new Date(item.released);
-        if (releaseDate.getFullYear() === latestYear) {
-          totalSum++;
-          const month = releaseDate.getMonth(); // 0 = January, 11 = December
-          monthlyData[month]++;
-          if (!provinceTotals[item.province]) {
-            provinceTotals[item.province] = 0;
+      dataset
+        .filter(item => item.released && !isNaN(new Date(item.released).getTime()))
+        .forEach(item => {
+          const releaseDate = new Date(item.released);
+
+          if (releaseDate.getFullYear() === this.activeReleasedYear) {
+            totalSum++;
+            monthlyData[releaseDate.getMonth()]++;
+
+            if (!provinceTotals[item.province]) {
+              provinceTotals[item.province] = 0;
+            }
+            provinceTotals[item.province]++;
           }
-          provinceTotals[item.province]++;
-        }
-      });
+        });
 
       return { totalSum, monthlyData, provinceTotals };
     },

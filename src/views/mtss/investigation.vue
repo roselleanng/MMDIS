@@ -56,11 +56,31 @@
           </div>
         </div>
       </div>
-      <div class="flex content-center">
-        <button @click="downloadSummary" class="mr-4 bg-blue-400 hover:bg-blue-100 p-2 text-white rounded-lg">Download Summary</button>
-        <button @click="showModal = true" class="mr-4 bg-amber-400 hover:bg-amber-100 p-2 text-black rounded-lg">Add New Data</button>
+
+      <div class="flex content-center gap-3">
+        <button 
+            @click="downloadSummary" 
+            class="bg-blue-400 hover:bg-blue-100 h-12 px-4 text-white rounded-lg">
+            Download Summary
+        </button>
+
+        <button 
+            v-if="!isMMD" 
+            @click="showModal = true" 
+            class="bg-amber-400 hover:bg-amber-100 h-12 px-4 text-black rounded-lg">
+            Add New Data
+        </button>
+
+        <!--<button
+            v-if="!isMMD"
+            @click="showDeleteAllModal = true"
+            class="bg-red-600 hover:bg-red-700 text-white h-12 px-4 rounded-lg font-medium shadow">
+            Delete All
+        </button>-->
       </div>
     </div>
+
+
 
     <!-- Table Section -->
  <!-- Table Section -->
@@ -132,8 +152,8 @@
             <td class="px-2 py-2 flex justify-center w-32 space-x-1">
               
               <button @click="openLink(entry.coordinates)" class="rounded"><img src="../../assets/icons/map.png" class="w-6"></button>
-              <button @click="openUpdateModal(entry.ID)" class="rounded"><img src="../../assets/icons/edit.png" class="w-6"></button>
-              <button @click="deleteEntry(entry.ID)" class="rounded"><img src="../../assets/icons/remove.png" class="w-6"></button>
+              <button v-if="!isMMD" @click="openUpdateModal(entry.ID)" class="rounded"><img src="../../assets/icons/edit.png" class="w-6"></button>
+              <button v-if="!isMMD" @click="deleteEntry(entry.ID)" class="rounded"><img src="../../assets/icons/remove.png" class="w-6"></button>
             </td>
           </tr>
         </tbody>
@@ -263,6 +283,55 @@
       </div>
     </div>
 
+    <!-- Delete All Confirmation Modal -->
+    <div v-if="showDeleteAllModal" class="fixed inset-0 z-50 overflow-y-auto">
+      <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+        <!-- Background overlay -->
+        <div class="fixed inset-0 transition-opacity" aria-hidden="true">
+          <div class="absolute inset-0 bg-gray-800 opacity-75"></div>
+        </div>
+        <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+        <!-- Modal panel -->
+        <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-md sm:w-full">
+          <div class="bg-white px-6 pt-6 pb-4">
+            <!-- Icon + Title -->
+            <div class="flex items-center gap-3 mb-3">
+              <div class="flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-red-100">
+                <svg class="h-6 w-6 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
+                </svg>
+              </div>
+              <h3 class="text-lg font-bold text-gray-900">Delete All Records</h3>
+            </div>
+            <!-- Message -->
+            <p class="text-sm text-gray-600 mb-1">
+              Are you sure you want to <span class="font-semibold text-red-600">delete ALL</span> Ore Sample Transport Certificate entries?
+            </p>
+            <p class="text-sm text-gray-500">
+              This action <span class="font-semibold">cannot be undone</span>. All records and associated PDF files will be permanently removed.
+            </p>
+          </div>
+          <!-- Buttons -->
+          <div class="bg-gray-50 px-6 py-4 flex justify-end gap-3">
+            <button
+              @click="showDeleteAllModal = false"
+              type="button"
+              class="inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-sm font-medium text-gray-700 hover:bg-gray-100 focus:outline-none">
+              Cancel
+            </button>
+            <button
+              @click="confirmDeleteAll"
+              type="button"
+              class="inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-red-600 text-sm font-medium text-white hover:bg-red-700 focus:outline-none">
+              Yes, Delete All
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- End Delete All Confirmation Modal -->
+
     <!-- Update Modal -->
     <div v-if="isUpdateModalOpen" class="fixed inset-0 overflow-y-auto" aria-modal="true" role="dialog">
       <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
@@ -352,14 +421,36 @@
                   <p class="mr-5">Remarks:</p>
                   <input v-model="updateEntry.remarks" type="text" class="w-72 bg-orange-100 rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
                 </div>
-                <div class="mt-2 flex justify-between">
-                  <p class="mr-5">Historical Data:</p>
-                  <input ref="HistoricalData" type="file" accept="application/pdf" @change="handleFileUpload" class="w-72 bg-orange-100 rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
+                
+
+              <div class="mt-2 flex">
+                    <!-- Label -->
+                    <p class="mr-5 w-40">Historical Data:</p>
+
+                    <!-- File section -->
+                    <div class="flex flex-col">
+                      <input ref="HistoricalData" type="file" accept="application/pdf" @change="handleFileUpload($event, 'HistoricalData')" class="w-72 bg-orange-100 rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
+                      <div v-if="updateEntry.HistoricalData" class="flex items-center mt-1">
+                        <input type="checkbox" v-model="deleteHistoricalData" class="mr-2">
+                        <label>Delete existing</label>
+                      </div>
+                    </div>
                 </div>
-                <div class="mt-2 flex justify-between">
-                  <p class="mr-5">MOV:</p>
-                  <input ref="MOVpdf" type="file" accept="application/pdf" @change="handleFileUpload" class="w-72 bg-orange-100 rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
+
+                <div class="mt-2 flex">
+                    <!-- Label -->
+                    <p class="mr-5 w-40">Proof of MOV:</p>
+
+                    <!-- File section -->
+                    <div class="flex flex-col">
+                      <input ref="MOVpdf" type="file" accept="application/pdf" @change="handleFileUpload($event, 'MOVpdf')" class="w-72 bg-orange-100 rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
+                      <div v-if="updateEntry.MOVpdf" class="flex items-center mt-1">
+                        <input type="checkbox" v-model="deleteMOV" class="mr-2">
+                        <label>Delete existing</label>
+                      </div>
+                    </div>
                 </div>
+                
                 <div class="mt-2 flex justify-between">
                   <p class="mr-5">Enter map URL:</p>
                   <input v-model="updateEntry.coordinates"  type="text" class="w-72 bg-orange-100 rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
@@ -411,12 +502,16 @@ export default {
       newEntry: this.getEmptyEntry(),
       isUpdateModalOpen: false, // State to track if the update modal is open
       updateEntry: this.getEmptyEntry(), // Object to store the entry being updated
-      file: null,
-      selectedHistoricalData: [],
-      selectedEntry: null,
-      editingIndex: null,
-   
+     
+      userRole: localStorage.getItem('userRole') || '',
+      showDeleteAllModal: false, // State for delete all confirmation modal
 
+      file: null,
+      MOVpdfFile: null,
+      HistoricalDataFile: null,
+
+      deleteMOV: false, 
+      deleteHistoricalData: false,
 
       // Add hideColumns object to control visibility of specific columns
       hideColumns: {
@@ -424,8 +519,7 @@ export default {
       report_date: true,
       transmittal_date: true,
       mmd_personnel: true,
-
-    },
+      },
   };
 },
 
@@ -493,6 +587,10 @@ export default {
     return new Date().getFullYear();
   },
 
+  isMMD() {
+      return this.userRole === 'mmd';
+    }
+
   },
   methods: {
 
@@ -513,11 +611,27 @@ export default {
         released_date: '',
         mmd_personnel: '',
         remarks: '',
+
         HistoricalData: '',
         MOVpdf: '',
         coordinates: '',
+
+
       };
     },  
+
+    confirmDeleteAll() {
+      this.showDeleteAllModal = false;
+      axios.delete(`${API_BASE_URL}/api/MonitoringInvestigation/deleteAllRecords`)
+        .then(() => {
+          this.investigation = [];
+          alert("All entries deleted successfully.");
+        })
+        .catch(error => {
+          console.error(error);
+          alert("Failed to delete all entries.");
+        });
+    },
 
     fetchInvestigation() {
       axios.get(`${API_BASE_URL}/api/MonitoringInvestigation`)
@@ -549,9 +663,21 @@ export default {
 
     return filteredData;
     },
+
     addNewEntry() {
+
+      // Client-side validation for required fields
+      const requiredFields = ['month', 'text_field', 'complainant', 'complaint_received','province','city_municipality','barangay'];
+      for (const field of requiredFields) {
+        if (!this.newEntry[field]) {
+          alert(`The field "${field.replace(/_/g, ' ')}" is required.`);
+          return;
+        }
+      }
+
       const fileInput = this.$refs.MOVpdf.files[0] || null; // Use null if no file is selected
       const fileInput2 = this.$refs.HistoricalData.files[0] || null; // Use null if no file is selected
+
       if (fileInput && fileInput.size > 5 * 1024 * 1024) { // 5MB limit
         alert('File size exceeds 5MB.');
         return;
@@ -576,12 +702,14 @@ export default {
       formData.append('released_date', this.newEntry.released_date);
       formData.append('mmd_personnel', this.newEntry.mmd_personnel);
       formData.append('remarks', this.newEntry.remarks);
+      
       if (fileInput2) {
       formData.append('HistoricalData', fileInput2);
       }
       if (fileInput) {
       formData.append('MOVpdf', fileInput);
       }
+      
       formData.append('coordinates', this.newEntry.coordinates);
 
       axios.post(`${API_BASE_URL}/api/MonitoringInvestigation`, formData, {
@@ -595,9 +723,9 @@ export default {
       })
       .catch(error => {
         console.error('Error adding entry:', error.response ? error.response.data : error.message);
-        alert('Failed to add new entry. Please try again later.');
       });
     },
+    
     clearNewEntry() {
       this.newEntry = {
         month: '',
@@ -626,15 +754,14 @@ export default {
         this.$refs.MOVpdf.value = '';
       }
     },
-    openPDF(pdfPath) {
-      const index = pdfPath.indexOf('/');
-      const pdfFinalPath = pdfPath.slice(index + 1);
-      const url = `${API_BASE_URL}/storage/${pdfFinalPath}`;
-      if (pdfPath) {
-        window.open(url, '_blank');
-      } else {
-        console.error('PDF URL not found');
+    openPDF(filePath) {
+      if (!filePath) {
+        alert('No PDF uploaded.');
+        return;
       }
+      const cleanedPath = filePath.replace('public/', '');
+      const url = `${API_BASE_URL}/storage/${cleanedPath}`;
+      window.open(url, '_blank');
     },
 
     openLink(url) {
@@ -678,32 +805,63 @@ export default {
     if (entry) {
       this.updateEntry = { ...entry }; // Copy the entry data to `updateEntry`
       this.isUpdateModalOpen = true; // Open the update modal
+      
+      this.deleteMOV = false;
+      this.deleteHistoricalData = false;
+      this.MOVpdfFile = null;       // ✅ reset file
+      this.HistoricalDataFile = null;    
     }
   },
 
   closeModal() {
     this.isUpdateModalOpen = false; 
     this.updateEntry = this.getEmptyEntry();
+
+          
+    this.deleteMOV = false;
+    this.deleteHistoricalData = false;
+    this.MOVpdfFile = null;       // ✅ reset file
+    this.HistoricalDataFile = null;    
   },
 
-  handleFileUpload(event) {
-    this.file = event.target.files[0];
+
+
+  handleFileUpload(event, fileType) {
+    console.log('handleFileUpload called with fileType:', fileType);
+    if (fileType === 'MOVpdf') {
+      this.MOVpdfFile = event.target.files[0];
+      console.log('MOVpdfFile set:', this.MOVpdfFile);
+    } else if (fileType === 'HistoricalData') {
+      this.HistoricalDataFile = event.target.files[0];
+      console.log('HistoricalData set:', this.HistoricalDataFile);
+    }
   },
+
   // Method to handle the update process
   async handleUpdate() {
-    console.log(this.file)
 
-    if (this.file && this.file.size > 5 * 1024 * 1024) {
-      alert('File size exceeds 5MB.');
-      return;
-    }
+      // Client-side validation for required fields
+      const requiredFields = ['month', 'text_field', 'complainant', 'complaint_received','province','city_municipality','barangay'];
+      for (const field of requiredFields) {
+        if (!this.updateEntry[field]) {
+          alert(`The field "${field.replace(/_/g, ' ')}" is required.`);
+          return;
+        }
+      }
 
-    if (this.file) {
-  // Validate file type
-  if (this.file.type !== 'application/pdf') {
-    alert('Only PDF files are allowed.');
-    return;
-  }}
+        console.log(this.file)
+
+        if (this.file && this.file.size > 5 * 1024 * 1024) {
+          alert('File size exceeds 5MB.');
+          return;
+        }
+
+        if (this.file) {
+      // Validate file type
+      if (this.file.type !== 'application/pdf') {
+        alert('Only PDF files are allowed.');
+        return;
+      }}
 
     // const formData = this.updateEntry;
     const formData = new FormData();
@@ -714,21 +872,55 @@ export default {
     formData.append('province', this.updateEntry.province);
     formData.append('city_municipality', this.updateEntry.city_municipality);
     formData.append('barangay', this.updateEntry.barangay);
-    formData.append('sitio', this.updateEntry.sitio);
-    formData.append('date_acted', this.updateEntry.date_acted);
-    formData.append('report_date', this.updateEntry.report_date);
-    formData.append('transmittal_date', this.updateEntry.transmittal_date);
-    formData.append('released_date', this.updateEntry.released_date);
-    formData.append('mmd_personnel', this.updateEntry.mmd_personnel);
-    formData.append('remarks', this.updateEntry.remarks);
-    // Append file if it exists
-    if (this.file) {
-      formData.append('HistoricalData', this.file);
+    if (this.updateEntry.sitio) {
+          formData.append('sitio', this.updateEntry.sitio);
     }
-    if (this.file) {
-      formData.append('MOVpdf', this.file);
+    if (this.updateEntry.date_acted) {
+          formData.append('date_acted', this.updateEntry.date_acted);
     }
-    formData.append('coordinates', this.updateEntry.coordinates);
+    if (this.updateEntry.report_date) {
+          formData.append('report_date', this.updateEntry.report_date);
+    }
+    if (this.updateEntry.transmittal_date) {
+          formData.append('transmittal_date', this.updateEntry.transmittal_date);
+    } 
+    if (this.updateEntry.released_date) {
+          formData.append('released_date', this.updateEntry.released_date);
+    } 
+    if (this.updateEntry.mmd_personnel) {
+          formData.append('mmd_personnel', this.updateEntry.mmd_personnel);
+    } 
+    if (this.updateEntry.remarks) {
+          formData.append('remarks', this.updateEntry.remarks);
+    } 
+    if (this.updateEntry.coordinates) {
+      formData.append('coordinates', this.updateEntry.coordinates);
+    } 
+   
+    // Append the file if selected
+    // ✅ If new file uploaded
+    if (this.MOVpdfFile) {
+      formData.append('MOVpdf', this.MOVpdfFile);
+    }
+
+    // ✅ If delete checkbox checked
+    if (this.deleteMOV) {
+      formData.append('clear_MOVpdf', '1');
+    }
+
+    // Append the file if selected
+
+    // ✅ If new file uploaded
+    if (this.HistoricalDataFile) {
+      formData.append('HistoricalData', this.HistoricalDataFile);
+    }
+
+    // ✅ If delete checkbox checked
+    if (this.deleteHistoricalData) {
+      formData.append('clear_HistoricalData', '1');
+    }
+
+
 
     axios.post(`${API_BASE_URL}/api/MonitoringInvestigation/${this.updateEntry.ID}`, formData)
       .then(response => {
@@ -736,12 +928,18 @@ export default {
         if (index !== -1) {
           this.investigation[index] = response.data; // Directly assign the updated data to the entry in the array
         }
+
+        
+        this.MOVpdfFile = null;
+        this.HistoricalDataFile = null;
+        this.deleteMOV = false;
+        this.deleteHistoricalData = false;
+    
         this.closeModal(); // Close the modal after successful update
         alert('Entry updated successfully!');
       })
       .catch(error => {
-        console.error('Error updating entry:', error);
-        alert('Failed to update the entry.');
+        console.error('Error adding entry:', error.response ? error.response.data : error.message);
       });
   },    
     debouncedSearch: debounce(function() {
@@ -816,6 +1014,8 @@ export default {
 
   mounted() {
     this.fetchInvestigation();
+    console.log('userRole:', this.userRole);
+    console.log('isMMD:', this.isMMD);
   }
 };
 </script>

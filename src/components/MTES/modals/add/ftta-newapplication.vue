@@ -1,6 +1,6 @@
 <template>
   <!-- Modal -->
-  <div v-if="showModal" class="fixed inset-0 overflow-y-auto" style="z-index: 10;">
+  <div v-if="show" class="fixed inset-0 overflow-y-auto" style="z-index: 10;">
     <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
       <!-- Background overlay -->
       <div class="fixed inset-0 transition-opacity" aria-hidden="true">
@@ -185,7 +185,9 @@
 
                 <!-- Conditional dropdown for "On-going Process" -->
                 <div class="flex justify-between border-t" v-if="detailstoadd.status === 'On-going Process'">
-                  <p class="mr-5 mt-4">Stage of Processing:</p>
+                  <p class="mr-5 mt-4">
+                    Stage of Processing:<span class="text-red-500 ml-1">*</span>
+                  </p>
                   <select v-model="selectedOngoingProcessing" class="mt-4 w-96 pl-1 pr-1 bg-green-300 rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
                     <option value="" disabled selected class="text-center text-gray-100">- - - - Select an option - - - -</option>
                     <option value="Under Pre-Processing by Mining Tenement Evaluation Section">Under Pre-Processing by Mining Tenement Evaluation Section</option>
@@ -207,11 +209,16 @@
                     <option value="- - -">- - -</option>
                   </select>
                 </div>
+                  <!-- Conditional input for Expiration Date when status is "Issued" -->
+                  <div class="flex justify-between border-t" v-if="detailstoadd.status === 'Issued'">
+                  <p class="mr-5 mt-4">Expiration Date:<span class="pl-1 text-red-500">*</span></p>
+                  <input v-model="detailstoadd.expiration_date" type="date" class="mt-4 w-96 pl-1 pr-1 bg-green-300 rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
+                </div>
             </div>
           </div>
         </div>
         <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
-          <button @click="showModal = false" type="button" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 text-base font-medium text-white hover:bg-red-700 bg-red-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 sm:ml-3 sm:w-auto sm:text-sm">
+          <button @click="$emit('close')" type="button" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-red-800 text-base font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 sm:ml-3 sm:w-auto sm:text-sm">
             Close
           </button>
           <button @click="submit" type="button" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-green-800 text-base font-medium text-white hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 sm:ml-3 sm:w-auto sm:text-sm">
@@ -230,6 +237,12 @@ import axios from 'axios';
 import { API_BASE_URL } from '../../../../config';
 
 export default {
+  props: {
+    show: {
+      type: Boolean,
+      default: false
+    }
+  },
   data() {
     return {
       details: [],
@@ -240,7 +253,7 @@ export default {
       regions: [],
       locations: [{ provinces: [], cities: [], barangays: [] }], // First location initialized
       visibleLocations: [], // Tracks additional locations
-      showModal: true,
+      // showModal now controlled by parent prop 'show'
       submissionStatus: '',
       detailstoadd: {
         tenement_name: '',
@@ -258,6 +271,7 @@ export default {
         oth_rs: '',
         status: '',
         stage_of_processing: '-',
+        expiration_date: '',
         application: 'ftta'
       },
     };
@@ -409,6 +423,11 @@ export default {
         missingFields.push('Stage of Processing');
       }
 
+      if (this.detailstoadd.status === 'Issued' && !this.detailstoadd.expiration_date) {
+        missingFields.push('Expiration Date');
+      }
+
+
       if (missingFields.length > 0) {
         alert(`Please fill in the following required fields:\n\n${missingFields.join('\n')}`);
         return false;
@@ -426,12 +445,7 @@ export default {
 
         // Append all fields, converting empty strings to null for optional fields
         for (const [key, value] of Object.entries(this.detailstoadd)) {
-            // For optional fields, send null instead of empty string
-            if (key === 'others' || key === 'oth_rs' || key === 'tenement_number') {
-                formData.append(key, value.trim() || null);
-            } else {
-                formData.append(key, value);
-            }
+            formData.append(key, value);
         }
 
         formData.append('category', this.selectedCategory === 'Other' ? this.otherCategory : this.selectedCategory);
@@ -447,6 +461,11 @@ export default {
         } else {
             formData.append('stage_of_processing', '-');
             this.detailstoadd.stage_of_processing = '-';
+        }
+
+        // Include expiration_date if status is "Issued"
+        if (this.detailstoadd.status === 'Issued') {
+            formData.append('expiration_date', this.detailstoadd.expiration_date);
         }
 
         // Append additional locations data, converting empty/undefined to null
@@ -466,7 +485,7 @@ export default {
         axios.post(`${API_BASE_URL}/add_details`, formData)
             .then(response => {
                 alert('Details submitted successfully!');
-                location.reload(); // Refresh the page
+                this.$emit('close'); // Close modal, parent refreshes data if needed
             })
             .catch(error => {
                 console.error('Error:', error);

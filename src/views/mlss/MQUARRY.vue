@@ -33,7 +33,15 @@
     </div>
     <!-- get the total sum of released from the latest year -->
     <div class="flex bg-white justify-between pl-4">
-      <h2 class="flex text-xl font-semibold">There are {{ totalSum }} total sum of released MouTntain Quarry.</h2> 
+      <h2 class="flex text-xl font-semibold">
+        <template v-if="selectedReleasedYear">
+          There are {{ totalSum }} total released Industrial Sand and Gravel for {{ selectedReleasedYear }}.
+        </template>
+
+        <template v-else>
+          There are {{ totalSum }} total released Industrial Sand and Gravel (All Years).
+        </template>
+      </h2>
     </div>
 
     <!-- Search and Add New Data Section -->
@@ -48,13 +56,36 @@
         <div class="w-full">
           <label for="default-search" class="mb-2 text-sm font-medium text-gray-900 sr-only">Search</label>
           <div class="">
-            <input v-model="searchQuery" @input="debouncedSearch" type="search" id="default-search" class="block w-full p-4 text-sm text-gray-900 border border-gray-300 rounded-r-lg bg-gray-50 focus:ring-blue-500 focus:border-blue-500" placeholder="Search name, province, city, barangay..." required />
+            <input
+              v-model="searchQuery"
+              type="search"
+              id="default-search"
+              class="block w-full p-4 text-sm text-gray-900 border border-gray-300 rounded-r-lg bg-gray-50 focus:ring-blue-500 focus:border-blue-500"
+              placeholder="Search name, province, city, barangay..."
+              required
+            />
           </div>
+        </div>
+        <div class="flex items-center ml-4">
+          <label class="mr-2 text-sm font-medium text-gray-700">Released Year:</label>
+          <select
+            v-model="selectedReleasedYear"
+            class="p-3 text-sm text-gray-900 border border-gray-300 rounded-lg bg-gray-50 focus:ring-blue-500 focus:border-blue-500"
+          >
+            <option value="">All</option>
+            <option
+              v-for="year in availableReleasedYears"
+              :key="year"
+              :value="year"
+            >
+              {{ year }}
+            </option>
+          </select>
         </div>
       </div>
       <div class="flex content-center">
         <button @click="downloadSummary" class="mr-4 bg-blue-400 hover:bg-blue-100 p-2 text-white rounded-lg">Download Summary</button>
-        <button @click="showModal = true" class="mr-4 bg-amber-400 hover:bg-amber-100 p-2 text-black rounded-lg">Add New Data</button>
+        <button v-if="!isMMD"  @click="showModal = true" class="mr-4 bg-amber-400 hover:bg-amber-100 p-2 text-black rounded-lg">Add New Data</button>
       </div>
     </div>
 
@@ -88,7 +119,8 @@
             </th>
             <th scope="col" class="px-6 py-3">Status</th>
             <th scope="col" class="px-6 py-3">Remarks</th>
-            <th scope="col" class="px-6 py-3">Action</th>
+            <th scope="col" class="px-6 py-3 w-32 truncate">Supported Documents</th>
+            <th v-if="!isMMD" scope="col" class="px-6 py-3">Action</th>
           </tr>
         </thead>
 
@@ -107,9 +139,14 @@
             <td class="px-6 py-4">{{ formatDate(quarry.released) }}</td>
             <td class="px-6 py-4">{{ quarry.status }}</td>
             <td class="px-6 py-4">{{ quarry.remarks }}</td>
+            <td class="px-2 py-2 w-32 text-center">
+              <button @click="openPDF(quarry.attachment)" class="bg-green-500 text-black px-2 py-1 rounded">ASC</button>
+              <button @click="openPDF(quarry.documents)" class="bg-white-500 text-white px-2 py-1 rounded">📄</button>
+              <button @click="openPDF(quarry.vsheet)" class="bg-yellow-500 text-black px-2 py-1 rounded">VSHEET</button>
+            </td>
             <td class="px-6 py-4 flex">
-              <button @click="openUpdateModal(quarry.id)" class="bg-grey-100 text-white px-2 py-1 rounded"><img src="../../assets/icons/edit.png" style="width: 25px;"></button>
-              <button @click="deleteEntry(quarry.id)" class="bg-grey-100 text-white px-2 py-1 rounded "><img src="../../assets/icons/remove.png" style="width: 20px;"></button>
+              <button v-if="!isMMD" @click="openUpdateModal(quarry.id)" class="bg-grey-100 text-white px-2 py-1 rounded"><img src="../../assets/icons/edit.png" style="width: 25px;"></button>
+              <button v-if="!isMMD" @click="deleteEntry(quarry.id)" class="bg-grey-100 text-white px-2 py-1 rounded "><img src="../../assets/icons/remove.png" style="width: 20px;"></button>
             </td>
           </tr>
         </tbody>
@@ -198,6 +235,22 @@
                   <p class="mr-5">Remarks</p>
                   <input v-model="newEntry.remarks" type="text" class="pl-1 pr-1 bg-orange-100 rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
                 </div>
+
+                <div class="mt-2 flex justify-between">
+                  <p class="mr-5">Area Status Clearance</p>
+                  <input ref="attachment" type="file" accept="application/pdf" class="w-72 bg-orange-100 rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
+                </div>
+
+                <div class="mt-2 flex justify-between">
+                  <p class="mr-5">Submitted Documents</p>
+                  <input ref="documents" type="file" accept="application/pdf" class="w-72 bg-orange-100 rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
+                </div>
+
+                <div class="mt-2 flex justify-between">
+                  <p class="mr-5">Verification Sheet</p>
+                  <input ref="vsheet" type="file" accept="application/pdf,image/*" class="w-72 bg-orange-100 rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
+                </div>
+
               </div>
             </div>
           </div>
@@ -230,11 +283,11 @@
               <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
               
                   <div class="mt-2 flex justify-between">
-                      <p class="mr-5">Name:</p>
+                      <p class="mr-5">Name:<span class="text-red-500">*</span></p>
                       <input v-model="updateEntry.name" type="text" class="w-72 bg-orange-100 rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
                   </div>
                   <div class="mt-2 flex justify-between">
-                      <p class="mr-5">Area:</p>
+                      <p class="mr-5">Area:<span class="text-red-500">*</span></p>
                       <input v-model="updateEntry.area" type="text" class="w-72 bg-orange-100 rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
                   </div>
                   <div class="mt-2 flex justify-between">
@@ -248,11 +301,11 @@
                     </select>
                   </div>
                   <div class="mt-2 flex justify-between">
-                      <p class="mr-5">City/Municipality</p>
+                      <p class="mr-5">City/Municipality<span class="text-red-500">*</span></p>
                       <input v-model="updateEntry.city_municipality" type="text" class="w-72 bg-orange-100 rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
                   </div>
                   <div class="mt-2 flex justify-between">
-                      <p class="mr-5">Barangay</p>
+                      <p class="mr-5">Barangay<span class="text-red-500">*</span></p>
                       <input v-model="updateEntry.barangay" type="text" class="w-72 bg-orange-100 rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
                   </div>
                   <div class="mt-2 flex justify-between">
@@ -260,19 +313,19 @@
                       <input v-model="updateEntry.sitio" type="text" class="w-72 bg-orange-100 rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
                   </div>
                   <div class="mt-2 flex justify-between">
-                      <p class="mr-5">Lot No.</p>
+                      <p class="mr-5">Lot No.<span class="text-red-500">*</span></p>
                       <input v-model="updateEntry.lot_no" type="text" class="w-72 bg-orange-100 rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
                   </div>
                   <div class="mt-2 flex justify-between">
-                      <p class="mr-5">Survey No.</p>
+                      <p class="mr-5">Survey No.<span class="text-red-500">*</span></p>
                       <input v-model="updateEntry.survey_no" type="text" class="w-72 bg-orange-100 rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
                   </div>
                 <div class="mt-2 flex justify-between">
-                  <p class="mr-5">Date Received</p>
+                  <p class="mr-5">Date Received<span class="text-red-500">*</span></p>
                   <input v-model="updateEntry.received" type="date" class="pl-1 pr-1 bg-orange-100 rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
                 </div>
                 <div class="mt-2 flex justify-between">
-                  <p class="mr-5">Date Released</p>
+                  <p class="mr-5">Date Released<span class="text-red-500">*</span></p>
                   <input v-model="updateEntry.released" type="date" class="pl-1 pr-1 bg-orange-100 rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
                 </div>
                 <div class="mt-2 flex justify-between">
@@ -283,6 +336,47 @@
                   <p class="mr-5">Remarks</p>
                   <input v-model="updateEntry.remarks" type="text" class="w-72 bg-orange-100 rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
                 </div>
+
+                <div class="mt-2 flex justify-between">
+                  <p class="mr-5">Area Status Clearance</p>
+                  <div class="flex items-center">
+                    <input ref="updateAttachment" type="file" accept="application/pdf" class="w-72 bg-orange-100 rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
+                  </div>
+                </div>
+                <div class="mt-2 flex justify-between">
+                  <p class="mr-5"></p>
+                  <div class="flex items-center">
+                    <input v-model="attachmentCleared" type="checkbox" class="mr-2">
+                    <label>Delete existing attachment</label>
+                  </div>
+                </div>
+                <div class="mt-2 flex justify-between">
+                  <p class="mr-5">Submitted Documents</p>
+                  <div class="flex items-center">
+                    <input ref="updateAttachment2" type="file" accept="application/pdf" class="w-72 bg-orange-100 rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
+                  </div>
+                </div>
+                <div class="mt-2 flex justify-between">
+                  <p class="mr-5"></p>
+                  <div class="flex items-center">
+                    <input v-model="attachmentCleared2" type="checkbox" class="mr-2">
+                    <label>Delete existing attachment</label>
+                  </div>
+                </div>
+                <div class="mt-2 flex justify-between">
+                  <p class="mr-5">Verification Sheet</p>
+                  <div class="flex items-center">
+                    <input ref="updateAttachment3" type="file" accept="application/pdf,image/*" class="w-72 bg-orange-100 rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
+                  </div>
+                </div>
+                <div class="mt-2 flex justify-between">
+                  <p class="mr-5"></p>
+                  <div class="flex items-center">
+                    <input v-model="attachmentCleared3" type="checkbox" class="mr-2">
+                    <label>Delete existing attachment</label>
+                  </div>
+                </div>
+
               </div>
             </div>
           </div>
@@ -317,6 +411,7 @@ export default {
     return {
     quarry: [],
     searchQuery: '',
+    selectedReleasedYear: '',
     sortBy: '',
     sortOrder: 'asc',
     showModal: false,
@@ -324,6 +419,11 @@ export default {
     isUpdateModalOpen: false,
     updateEntry: this.getEmptyEntry(),
     debouncedSearch: debounce(this.search, 300),
+    file: null,
+    userRole: localStorage.getItem('userRole') || '', // Store user role for reactivity
+    attachmentCleared: false,
+    attachmentCleared2: false,
+    attachmentCleared3: false,
 
   };
   },
@@ -332,42 +432,78 @@ export default {
     filteredQUARRY() {
       return this.getFilteredAndSortedData();
     },
-    totalSum() {
-    const latestYear = Math.max(...this.quarry.map(item => new Date(item.released).getFullYear()));
-    return this.quarry
-      .filter(quarry => new Date(quarry.released).getFullYear() === latestYear)
-      .length;
-  },
-    monthlyTotals() {
-      const latestYear = Math.max(...this.quarry.map(item => new Date(item.released).getFullYear()));
-      const monthlyData = Array(12).fill(0); // Initialize an array for 12 months
 
-      this.quarry.forEach(quarry => {
-        const releaseDate = new Date(quarry.released);
-        if (releaseDate.getFullYear() === latestYear) {
-          const month = releaseDate.getMonth(); // 0 = January, 11 = December
+    totalSum() {
+      return this.quarry.filter(item => {
+        if (!item.released) return false;
+
+        const year = new Date(item.released).getFullYear();
+
+        return !this.selectedReleasedYear || 
+              year === Number(this.selectedReleasedYear);
+      }).length;
+    },
+    activeReleasedYear() {
+      if (this.selectedReleasedYear) {
+        return Number(this.selectedReleasedYear);
+      }
+
+      const years = this.quarry
+        .map(item => item.released ? new Date(item.released).getFullYear() : null)
+        .filter(year => year && !isNaN(year));
+
+      return years.length ? Math.max(...years) : null;
+    },
+    isMMD() {
+            return this.userRole === 'mmd';
+          },
+
+    monthlyTotals() {
+      const monthlyData = Array(12).fill(0);
+
+      if (!this.activeReleasedYear) return monthlyData;
+
+      this.quarry.forEach(item => {
+        if (!item.released) return;
+
+        const releaseDate = new Date(item.released);
+        if (releaseDate.getFullYear() === this.activeReleasedYear) {
+          const month = releaseDate.getMonth();
           monthlyData[month]++;
         }
       });
 
-    return monthlyData;
+      return monthlyData;
+    },
+
+  availableReleasedYears() {
+      const years = this.quarry
+        .map(item => item.released ? new Date(item.released).getFullYear() : null)
+        .filter(year => year && !isNaN(year));
+
+      return [...new Set(years)].sort((a, b) => b - a);
   },
+
   provinceData() {
-      const latestYear = Math.max(...this.quarry.map(item => new Date(item.released).getFullYear()));
-      const provinceTotals = {};
+    const provinceTotals = {};
 
-      this.quarry.forEach(quarry => {
-        const Year = new Date(quarry.released);
-        if (Year.getFullYear() === latestYear) {
-          if (!provinceTotals[quarry.province]) {
-            provinceTotals[quarry.province] = 0;
-          }
-          provinceTotals[quarry.province]++;
+    if (!this.activeReleasedYear) return provinceTotals;
+
+    this.quarry.forEach(item => {
+      if (!item.released) return;
+
+      const releaseDate = new Date(item.released);
+      if (releaseDate.getFullYear() === this.activeReleasedYear) {
+        if (!provinceTotals[item.province]) {
+          provinceTotals[item.province] = 0;
         }
-      });
+        provinceTotals[item.province]++;
+      }
+    });
 
-      return provinceTotals;
+    return provinceTotals;
   },
+
   year() {
     return new Date().getFullYear();
   }
@@ -430,6 +566,10 @@ export default {
         released: '',
         status: '',
         remarks: '',
+        attachment: '',
+        documents: '',
+        vsheet: '',
+
       };
     },
 
@@ -443,7 +583,26 @@ export default {
         });
     },
 
+    openPDF(pdfPath) {
+      if (!pdfPath) {
+        alert('No attachment available.');
+        return;
+      }
+
+      const url = `${API_BASE_URL}/storage/${pdfPath}`;
+      window.open(url, '_blank');
+    },
+
     addNewEntry() {
+      const fileInput = this.$refs.attachment.files[0] || null;
+      const fileInput2 = this.$refs.documents.files[0] || null;
+      const fileInput3 = this.$refs.vsheet.files[0] || null;
+
+      if (fileInput && fileInput.size > 5 * 1024 * 1024) { // 5MB limit
+        alert('File size exceeds 5MB.');
+        return;
+      }
+      
       // Client-side validation for required fields
       const requiredFields = ['name', 'area', 'province', 'city_municipality', 'barangay', 'lot_no', 'survey_no', 'received','released'];
       for (const field of requiredFields) {
@@ -467,6 +626,24 @@ export default {
       formData.append('status', this.newEntry.status);
       formData.append('remarks', this.newEntry.remarks);
 
+      if (fileInput) {
+        formData.append('attachment', fileInput);
+      } else if (this.attachmentCleared) {
+        formData.append('attachment', '');
+      }
+
+      if (fileInput2) {
+        formData.append('documents', fileInput2);
+      } else if (this.attachmentCleared2) {
+        formData.append('documents', '');
+      }
+
+      if (fileInput3) {
+        formData.append('vsheet', fileInput3);
+      } else if (this.attachmentCleared3) {
+        formData.append('vsheet', '');
+      }
+
       axios.post(`${API_BASE_URL}/api/quarry`, formData)
         .then(response => {
           this.quarry.push(response.data);
@@ -475,8 +652,7 @@ export default {
           alert('Entry added successfully!');
         })
         .catch(error => {
-          console.error('Error adding new entry:', error);
-          alert('Some fields are required!');
+          console.error('Error adding entry:', error.response ? error.response.data : error.message);
         });
     },
 
@@ -491,30 +667,54 @@ export default {
     },
 
     getFilteredAndSortedData() {
-      const query = this.searchQuery.toLowerCase();
-      const filtered = this.quarry.filter(quarry =>
-        Object.values(quarry).some(val => 
-          String(val).toLowerCase().includes(query)
-        )
-      );
-      if (this.sortBy) {
-      filtered.sort((a, b) => {
-        let aValue = a[this.sortBy];
-        let bValue = b[this.sortBy];
-        if (this.sortBy === 'released' || this.sortBy === 'received') {
-          aValue = new Date(aValue);
-          bValue = new Date(bValue);
-        } else {
-          aValue = String(aValue).toLowerCase();
-          bValue = String(bValue).toLowerCase();
-        }
-        if (this.sortOrder === 'asc') {
-          return aValue > bValue ? 1 : aValue < bValue ? -1 : 0;
-        } else {
-          return aValue < bValue ? 1 : aValue > bValue ? -1 : 0;
-        }
+      const query = this.searchQuery.toLowerCase().trim();
+
+      const filtered = this.quarry.filter(quarry => {
+        const matchesSearch =
+          !query ||
+          [
+          quarry.name,
+          quarry.province,
+          quarry.city_municipality,
+          quarry.barangay,
+          quarry.sitio,
+          quarry.river,
+          quarry.status,
+          quarry.remarks,
+          ].some(val => String(val || '').toLowerCase().includes(query));
+
+        const releasedYear = quarry.released
+          ? new Date(quarry.released).getFullYear().toString()
+          : '';
+
+        const matchesReleasedYear =
+          !this.selectedReleasedYear ||
+          releasedYear === this.selectedReleasedYear.toString();
+
+        return matchesSearch && matchesReleasedYear;
       });
-    }
+
+      if (this.sortBy) {
+        filtered.sort((a, b) => {
+          let aValue = a[this.sortBy];
+          let bValue = b[this.sortBy];
+
+          if (this.sortBy === 'released' || this.sortBy === 'received') {
+            aValue = new Date(aValue);
+            bValue = new Date(bValue);
+          } else {
+            aValue = String(aValue || '').toLowerCase();
+            bValue = String(bValue || '').toLowerCase();
+          }
+
+          if (this.sortOrder === 'asc') {
+            return aValue > bValue ? 1 : aValue < bValue ? -1 : 0;
+          } else {
+            return aValue < bValue ? 1 : aValue > bValue ? -1 : 0;
+          }
+        });
+      }
+
       return filtered;
     },
 
@@ -553,6 +753,9 @@ export default {
     closeModal() {
       this.isUpdateModalOpen = false; 
       this.updateEntry = this.getEmptyEntry();
+      this.attachmentCleared = false;
+      this.attachmentCleared2 = false;
+      this.attachmentCleared3 = false;
     },
 
     sortByDate(key) {
@@ -565,41 +768,80 @@ export default {
     },
 
     async handleUpdate() {
-    // Validate file size and type if files are selected
+
+      // Client-side validation for required fields
+      const requiredFields = ['name', 'area', 'province', 'city_municipality', 'barangay', 'lot_no', 'survey_no','received','released'];
+      for (const field of requiredFields) {
+        if (!this.updateEntry[field]) {
+          alert(`The field "${field.replace(/_/g, ' ')}" is required.`);
+          return;
+        }
+      }
+
+      const fileInput = this.$refs.updateAttachment.files[0] || null;
+      const fileInput2 = this.$refs.updateAttachment2.files[0] || null;
+      const fileInput3 = this.$refs.updateAttachment3.files[0] || null;
+
+      if (fileInput && fileInput.size > 5 * 1024 * 1024) { // 5MB limit
+        alert('File size exceeds 5MB.');
+        return;
+      }
 
       // Prepare form data for the update
-        const formData = new FormData();
-        formData.append('name', this.updateEntry.name);
-        formData.append('area', this.updateEntry.area);
-        formData.append('province', this.updateEntry.province);
-        formData.append('city_municipality', this.updateEntry.city_municipality);
-        formData.append('barangay', this.updateEntry.barangay);
-        formData.append('sitio', this.updateEntry.sitio);
-        formData.append('lot_no', this.updateEntry.lot_no);
-        formData.append('survey_no', this.updateEntry.survey_no);
-        formData.append('received', this.updateEntry.received);
-        formData.append('released', this.updateEntry.released);
-        formData.append('status', this.updateEntry.status);
-        formData.append('remarks', this.updateEntry.remarks);
+      const formData = new FormData();
+      formData.append('name', this.updateEntry.name);
+      formData.append('area', this.updateEntry.area);
+      formData.append('province', this.updateEntry.province);
+      formData.append('city_municipality', this.updateEntry.city_municipality);
+      formData.append('barangay', this.updateEntry.barangay);
+      //formData.append('sitio', this.updateEntry.sitio);
+      formData.append('lot_no', this.updateEntry.lot_no);
+      formData.append('survey_no', this.updateEntry.survey_no);
+      formData.append('received', this.updateEntry.received);
+      formData.append('released', this.updateEntry.released);
+      formData.append('status', this.updateEntry.status);
+      //formData.append('remarks', this.updateEntry.remarks);
+      if (this.updateEntry.sitio) {
+      formData.append('sitio', this.updateEntry.sitio);
+     } 
+      if (this.updateEntry.remarks) {
+      formData.append('remarks', this.updateEntry.remarks);
+     } 
+      if (fileInput) {
+        formData.append('attachment', fileInput);
+      } else if (this.attachmentCleared) {
+        formData.append('attachment', '');
+      }
 
-        // Use PUT request for updating the entry
-        axios.post(`${API_BASE_URL}/api/quarry/${this.updateEntry.id}`, formData)
-          .then(response => {
-            // Find the index of the entry to be updated
-            const index = this.quarry.findIndex(entry => entry.id === this.updateEntry.id);
+      if (fileInput2) {
+        formData.append('documents', fileInput2);
+      } else if (this.attachmentCleared2) {
+        formData.append('documents', '');
+      }
 
-            if (index !== -1) {
-              this.quarry[index] = response.data;
-            }
+      if (fileInput3) {
+        formData.append('vsheet', fileInput3);
+      } else if (this.attachmentCleared3) {
+        formData.append('vsheet', '');
+      }
 
-        // Close the modal after successful update
-        this.closeModal();
-        alert('Entry updated successfully!');
-    })
-    .catch(error => {
-      console.error('Error updating entry:', error);
-      alert('Failed to update the entry.');
-    });
+      // Use POST request for updating the entry
+      axios.post(`${API_BASE_URL}/api/quarry/${this.updateEntry.id}`, formData)
+        .then(response => {
+          // Find the index of the entry to be updated
+          const index = this.quarry.findIndex(entry => entry.id === this.updateEntry.id);
+
+          if (index !== -1) {
+            this.quarry[index] = response.data;
+          }
+
+          // Close the modal after successful update
+          this.closeModal();
+          alert('Entry updated successfully!');
+        })
+        .catch(error => {
+          console.error('Error adding entry:', error.response ? error.response.data : error.message);
+        });
     },
 
 
@@ -610,6 +852,8 @@ export default {
   },
   mounted() {
     this.fetchQUARRY();
+    console.log('userRole:', this.userRole);
+    console.log('isMMD:', this.isMMD);
   },
 };
 </script>

@@ -70,39 +70,39 @@ import router from '../../router/index';
 
 export default {
   methods: {
-    // navigateToFTTAdashboard() {
-    //   router.push('/ftta');
-    // },
-    // navigateToEPdashboard() {
-    //   router.push('/ep');
-    // },
-    // navigateToMPSAdashboard() {
-    //   router.push('/mpsa');
-    // },
-    // navigateToISAGdashboard() {
-    //   router.push('/isag');
-    // },
-    // navigateToMBdashboard() {
-    //   router.push('/mb');
-    // },
-    // navigateToMPLdashboard() {
-    //   router.push('/mpl');
-    // },
-    // navigateToMPPdashboard() {
-    //   router.push('/mpp');
-    // },
-    // navigateToOTPdashboard() {
-    //   router.push('/otp');
-    // },
-    // navigateToSSMCdashboard() {
-    //   router.push('/ssmc');
-    // },
-    // navigateToAMTRDdashboard() {
-    //   router.push('/amtrd');
-    // },
-    // navigateToMOEPdashboard() {
-    //   router.push('/moep');
-    // },
+    navigateToFTTAdashboard() {
+    router.push('/ftta?type=permit');
+    },
+    navigateToEPdashboard() {
+    router.push('/ep?type=permit');
+    },
+    navigateToMPSAdashboard() {
+    router.push('/mpsa?type=permit');
+    },
+    navigateToISAGdashboard() {
+    router.push('/isag?type=permit');
+    },
+    navigateToMBdashboard() {
+    router.push('/mb?type=permit');
+    },
+    navigateToMPLdashboard() {
+    router.push('/mpl?type=permit');
+    },
+    navigateToMPPdashboard() {
+    router.push('/mpp?type=permit');
+    },
+    navigateToOTPdashboard() {
+    router.push('/otp?type=permit');
+    },
+    navigateToSSMCdashboard() {
+    router.push('/ssmc?type=permit');
+    },
+    navigateToAMTRDdashboard() {
+    router.push('/amtrd?type=permit');
+    },
+    navigateToMOEPdashboard() {
+    router.push('/moep?type=permit');
+    },
   }
 };
 </script>

@@ -30,21 +30,43 @@
       </h2>
     </div>
   
-    <!-- Search and Add Section -->
-    <div class="flex justify-between mt-8">
-      <!-- Search Input Container -->
-      <div class="flex w-2/5 ml-2">
-        <!-- Search Icon -->
-        <div class="flex items-center bg-blue-100 rounded-l-lg px-3 pointer-events-none">
-          <svg class="w-8 h-8 text-gray-500" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 20">
-            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m19 19-4-4m0-7A7 7 0 1 1 1 8a7 7 0 0 1 14 0Z" />
-          </svg>
+    <!-- Search and Add New Data Section -->
+    <div class="flex mt-8 justify-between">
+      <div class="flex w-2/5">
+        <div class="rounded-l-lg content-center bg-blue-100 items-center pe-3 ml-5 ps-3 pointer-events-none">
+            <svg class="w-8 h-8 text-gray-500" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 20">
+              <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m19 19-4-4m0-7A7 7 0 1 1 1 8a7 7 0 0 1 14 0Z" />
+            </svg>
         </div>
-        <!-- Search Input Field -->
-        <input v-model="searchQuery" @input="debouncedSearch" type="search" id="default-search" class="block w-full p-4 text-sm text-gray-900 border border-gray-300 rounded-r-lg bg-gray-50 focus:ring-blue-500 focus:border-blue-500" placeholder="Search month, client, or mmd personnel ..." required />
+        <div class="w-full">
+          <label for="default-search" class="mb-2 text-sm font-medium text-gray-900 sr-only">Search</label>
+          <div class="">
+            <input v-model="searchQuery" @input="debouncedSearch" type="search" id="default-search" class="block w-full p-4 text-sm text-gray-900 border border-gray-300 rounded-r-lg bg-gray-50 focus:ring-blue-500 focus:border-blue-500" placeholder="Search name, province, city, barangay, river, status or remarks..." required />
+          </div>
+        </div>
       </div>
-      <!-- Add Button -->
-      <AddBtn @click="showModal = true" />
+      
+      <div class="flex content-center gap-3">
+        <button 
+            @click="downloadSummary" 
+            class="bg-blue-400 hover:bg-blue-100 h-12 px-4 text-white rounded-lg">
+            Download Summary
+        </button>
+
+        <button 
+            v-if="!isMMD" 
+            @click="showModal = true" 
+            class="bg-amber-400 hover:bg-amber-100 h-12 px-4 text-black rounded-lg">
+            Add New Data
+        </button>
+
+        <!--<button
+            v-if="!isMMD"
+            @click="showDeleteAllModal = true"
+            class="bg-red-600 hover:bg-red-700 text-white h-12 px-4 rounded-lg font-medium shadow">
+            Delete All
+        </button>-->
+      </div>
     </div>
   
       <!-- Table Section -->
@@ -92,7 +114,7 @@
               </th>
               <th scope="col" class="px-6 py-3">MMD Personnel</th>
               <th scope="col" class="px-6 py-3 text-center">Proof of MOV Uploaded</th>
-              <th scope="col" class="px-6 py-3 flex justify-center">Action</th>
+              <th v-if="!isMMD" scope="col" class="px-6 py-3 flex justify-center">Action</th>
             </tr>
           </thead>
           <tbody>
@@ -101,7 +123,9 @@
               <td class="px-6 py-4">{{ entry.month }}</td>
               
               <td class="px-6 py-4" style="width: 300px;">{{ entry.text_field }}</td>
-              <td class="px-6 py-4">{{ entry.travel_date_from }} to {{ entry.travel_date_to }}</td>
+              <td class="px-6 py-4">
+            {{ entry.travel_date_from ? entry.travel_date_from + (entry.travel_date_to ? ' to ' + entry.travel_date_to : '') : '' }}
+            </td>
               <td class="px-6 py-4">{{ entry.report_date }}</td>
               <td class="px-6 py-4">{{ entry.transmittal_date }}</td>
               <td class="px-6 py-4">{{ entry.released_date }}</td>
@@ -111,8 +135,8 @@
               </td>
               <td class="px-6 py-4 flex justify-center">
               <!-- edit entry -->
-              <button @click="openUpdateModal(entry.ID)" class="bg-grey-100 text-white px-2 py-1 rounded"><img src="../../assets/icons/edit.png" style="width: 25px;"></button> 
-              <button @click="deleteEntry(entry.ID)" class="bg-grey-100 text-white px-2 py-1 rounded "><img src="../../assets/icons/remove.png" style="width: 20px;"></button>
+              <button v-if="!isMMD" @click="openUpdateModal(entry.ID)" class="bg-grey-100 text-white px-2 py-1 rounded"><img src="../../assets/icons/edit.png" style="width: 25px;"></button> 
+              <button v-if="!isMMD" @click="deleteEntry(entry.ID)" class="bg-grey-100 text-white px-2 py-1 rounded "><img src="../../assets/icons/remove.png" style="width: 20px;"></button>
               </td>
             </tr>
           </tbody>
@@ -202,6 +226,55 @@
         </div>
       </div>
 
+    <!-- Delete All Confirmation Modal -->
+    <div v-if="showDeleteAllModal" class="fixed inset-0 z-50 overflow-y-auto">
+      <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+        <!-- Background overlay -->
+        <div class="fixed inset-0 transition-opacity" aria-hidden="true">
+          <div class="absolute inset-0 bg-gray-800 opacity-75"></div>
+        </div>
+        <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+        <!-- Modal panel -->
+        <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-md sm:w-full">
+          <div class="bg-white px-6 pt-6 pb-4">
+            <!-- Icon + Title -->
+            <div class="flex items-center gap-3 mb-3">
+              <div class="flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-red-100">
+                <svg class="h-6 w-6 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
+                </svg>
+              </div>
+              <h3 class="text-lg font-bold text-gray-900">Delete All Records</h3>
+            </div>
+            <!-- Message -->
+            <p class="text-sm text-gray-600 mb-1">
+              Are you sure you want to <span class="font-semibold text-red-600">delete ALL</span> Ore Sample Transport Certificate entries?
+            </p>
+            <p class="text-sm text-gray-500">
+              This action <span class="font-semibold">cannot be undone</span>. All records and associated PDF files will be permanently removed.
+            </p>
+          </div>
+          <!-- Buttons -->
+          <div class="bg-gray-50 px-6 py-4 flex justify-end gap-3">
+            <button
+              @click="showDeleteAllModal = false"
+              type="button"
+              class="inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-sm font-medium text-gray-700 hover:bg-gray-100 focus:outline-none">
+              Cancel
+            </button>
+            <button
+              @click="confirmDeleteAll"
+              type="button"
+              class="inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-red-600 text-sm font-medium text-white hover:bg-red-700 focus:outline-none">
+              Yes, Delete All
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+
       <!-- Update Modal -->
       <div v-if="isUpdateModalOpen" class="fixed inset-0 overflow-y-auto" aria-modal="true" role="dialog">
         <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
@@ -216,7 +289,7 @@
             <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
               <div class="sm:flex sm:items-start">
                 <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
-                  <div class="mt-2 flex justify-between">
+                  <div class="grid grid-cols-[12rem_1fr] gap-2 items-center mt-2">
                     <p class="mr-5">Select Month:</p>
                     <select v-model="updateEntry.month" class="w-72 bg-orange-100 rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
                       <option>JANUARY</option>
@@ -237,32 +310,48 @@
                     <label for="text_field" class="text-gray-700">Work Program | Term and Conditions | Requirements of: (Field Monitoring)</label>
                     <textarea v-model="updateEntry.text_field" id="text_field" rows="4" class="w-full bg-orange-100 rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"></textarea>
                   </div>
-                  <div class="mt-2 flex justify-between">
+                  <div class="grid grid-cols-[12rem_1fr] gap-2 items-center mt-2">
                     <p class="mr-5">Travel Date:</p>
                     <input v-model="updateEntry.travel_date_from" type="date" class="pl-1 pr-1 bg-orange-100 rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
                     <p>to</p>
                     <input v-model="updateEntry.travel_date_to" type="date" class="pl-1 pr-1 bg-orange-100 rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
                   </div>
-                  <div class="mt-2 flex justify-between">
+                  <div class="grid grid-cols-[12rem_1fr] gap-2 items-center mt-2">
                     <p class="mr-5">Report Date:</p>
                     <input v-model="updateEntry.report_date" type="date" class="pl-1 pr-1 bg-orange-100 rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
                   </div>
-                  <div class="mt-2 flex justify-between">
+                  <div class="grid grid-cols-[12rem_1fr] gap-2 items-center mt-2">
                     <p class="mr-5">Transmittal Date:</p>
                     <input v-model="updateEntry.transmittal_date" type="date" class="pl-1 pr-1 bg-orange-100 rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
                   </div>
-                  <div class="mt-2 flex justify-between">
+                  <div class="grid grid-cols-[12rem_1fr] gap-2 items-center mt-2">
                     <p class="mr-5">Released Date:</p>
                     <input v-model="updateEntry.released_date" type="date" class="pl-1 pr-1 bg-orange-100 rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
                   </div>
-                  <div class="mt-2 flex justify-between">
+                  <div class="grid grid-cols-[12rem_1fr] gap-2 items-center mt-2">
                     <p class="mr-5">MMD Personnel:</p>
                     <input v-model="updateEntry.mmd_personnel" type="text" class="w-72 bg-orange-100 rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
                   </div>
-                  <div class="mt-2 flex justify-between">
-                    <p class="mr-5">Proof of MOV:</p>
-                    <input ref="MOVpdf" type="file" accept="application/pdf" @change="handleFileUpload" class="w-72 bg-orange-100 rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
+            
+                  <div class="mt-2 flex">
+                    <!-- Label -->
+                    <p class="mr-5 w-40">Proof of MOV:</p>
+
+                    <!-- File section -->
+                    <div class="flex flex-col">
+                      <input
+                        type="file"
+                        accept="application/pdf"
+                        @change="handleFileUpload($event, 'MOVpdf')"
+                        class="bg-orange-100 rounded-md border-gray-300 shadow-sm"
+                      >
+                      <div v-if="updateEntry.MOVpdf" class="flex items-center mt-1">
+                        <input type="checkbox" v-model="deleteMOV" class="mr-2">
+                        <label>Delete existing</label>
+                      </div>
+                    </div>
                   </div>
+
                 </div>
               </div>
             </div>
@@ -304,9 +393,12 @@ export default {
       isUpdateModalOpen: false,
       updateEntry: this.getEmptyEntry(),
       debouncedSearch: debounce(this.search, 300),
+      showDeleteAllModal: false, // State for delete all confirmation modal
       //
       //
-      file: null 
+      file: null,
+      userRole: localStorage.getItem('userRole') || '',
+      deleteMOV: false, 
     };
   },
 
@@ -350,6 +442,9 @@ export default {
 
     year() {
       return new Date().getFullYear();
+    },
+    isMMD() {
+      return this.userRole === 'mmd';
     }
   },
   methods: {
@@ -367,6 +462,19 @@ export default {
       };
     },
 
+    confirmDeleteAll() {
+      this.showDeleteAllModal = false;
+      axios.delete(`${API_BASE_URL}/api/MonitoringWPM/deleteAllRecords`)
+        .then(() => {
+          this.wpm = [];
+          alert("All entries deleted successfully.");
+        })
+        .catch(error => {
+          console.error(error);
+          alert("Failed to delete all entries.");
+        });
+    },
+
     fetchWPM() {
       axios.get(`${API_BASE_URL}/api/MonitoringWPM`)
         .then(response => {
@@ -379,6 +487,16 @@ export default {
     },
 
     addNewEntry() {
+
+      // Client-side validation for required fields
+      const requiredFields = ['month', 'text_field'];
+      for (const field of requiredFields) {
+        if (!this.newEntry[field]) {
+          alert(`The field "${field.replace(/_/g, ' ')}" is required.`);
+          return;
+        }
+      }
+
       const fileInput = this.$refs.MOVpdf.files[0] || null; // Use null if no file is selected
 
       if (fileInput && fileInput.size > 5 * 1024 * 1024) { // 5MB limit
@@ -407,20 +525,18 @@ export default {
           alert('Entry added successfully!');
         })
         .catch(error => {
-          console.error('Error adding new entry:', error);
-          alert('Some fields are required!');
+          console.error('Error adding entry:', error.response ? error.response.data : error.message);
         });
     },
 
-    openPDF(pdfPath) {
-      const index = pdfPath.indexOf('/');
-      const pdfFinalPath = pdfPath.slice(index + 1);
-      const url = `${API_BASE_URL}/storage/${pdfFinalPath}`;
-      if (pdfPath) {
-        window.open(url, '_blank');
-      } else {
-        console.error('PDF URL not found');
+    openPDF(filePath) {
+      if (!filePath) {
+        alert('No PDF uploaded.');
+        return;
       }
+      const cleanedPath = filePath.replace('public/', '');
+      const url = `${API_BASE_URL}/storage/${cleanedPath}`;
+      window.open(url, '_blank');
     },
 
     search() {
@@ -481,6 +597,8 @@ export default {
       const entry = this.wpm.find(entry => entry.ID === thisID);
       if (entry) {
         this.updateEntry = { ...entry };
+        this.file = null;       // ✅ reset file
+        this.deleteMOV = false; // reset checkbox
         this.isUpdateModalOpen = true;
       }
     },
@@ -488,6 +606,8 @@ export default {
     closeModal() {
       this.isUpdateModalOpen = false; 
       this.updateEntry = this.getEmptyEntry();
+      this.file = null;        // ✅ reset
+      this.deleteMOV = false;
     },
     //
     //
@@ -496,60 +616,98 @@ export default {
       this.file = event.target.files[0];
     },
 
-    async handleUpdate() {
-  console.log(this.file);
+  async handleUpdate() {
 
-  // Validate file size
-  if (this.file && this.file.size > 5 * 1024 * 1024) {
-    alert('File size exceeds 5MB.');
-    return;
-  }
-
-  // Validate file type if a file is uploaded
-  if (this.file && this.file.type !== 'application/pdf') {
-    alert('Only PDF files are allowed.');
-    return;
-  }
-
-  // Prepare form data for the update
-  const formData = new FormData();
-  formData.append('month', this.updateEntry.month);
-  formData.append('text_field', this.updateEntry.text_field);
-  formData.append('travel_date_from', this.updateEntry.travel_date_from);
-  formData.append('travel_date_to', this.updateEntry.travel_date_to);
-  formData.append('report_date', this.updateEntry.report_date);
-  formData.append('transmittal_date', this.updateEntry.transmittal_date);
-  formData.append('released_date', this.updateEntry.released_date);
-  formData.append('mmd_personnel', this.updateEntry.mmd_personnel);
-
-  // Append the file if selected
-  if (this.file) {
-    formData.append('MOVpdf', this.file);
-  }
-
-  // Use PUT request for updating the entry
-  axios.post(`${API_BASE_URL}/api/MonitoringWPM/${this.updateEntry.ID}`, formData)
-    .then(response => {
-      // Find the index of the entry to be updated
-      const index = this.wpm.findIndex(entry => entry.ID === this.updateEntry.ID);
-
-      if (index !== -1) {
-        this.wpm[index] = response.data;
+      // Client-side validation for required fields
+      const requiredFields = ['month', 'text_field'];
+      for (const field of requiredFields) {
+        if (!this.updateEntry[field]) {
+          alert(`The field "${field.replace(/_/g, ' ')}" is required.`);
+          return;
+        }
       }
 
-      // Close the modal after successful update
-      this.closeModal();
-      alert('Entry updated successfully!');
-    })
-    .catch(error => {
-      console.error('Error updating entry:', error);
-      alert('Failed to update the entry.');
-    });
-},
+    console.log(this.file);
+
+    // Validate file size
+    if (this.file && this.file.size > 5 * 1024 * 1024) {
+      alert('File size exceeds 5MB.');
+      return;
+    }
+
+    // Validate file type if a file is uploaded
+    if (this.file && this.file.type !== 'application/pdf') {
+      alert('Only PDF files are allowed.');
+      return;
+    }
+
+    // Prepare form data for the update
+    const formData = new FormData();
+    formData.append('month', this.updateEntry.month);
+    formData.append('text_field', this.updateEntry.text_field);
+
+
+      if (this.updateEntry.travel_date_from) {
+          formData.append('travel_date_from', this.updateEntry.travel_date_from);
+        }
+
+        if (this.updateEntry.travel_date_to) {
+          formData.append('travel_date_to', this.updateEntry.travel_date_to);
+        }
+
+        if (this.updateEntry.report_date) {
+          formData.append('report_date', this.updateEntry.report_date);
+        }
+
+        if (this.updateEntry.transmittal_date) {
+          formData.append('transmittal_date', this.updateEntry.transmittal_date);
+        }
+
+        if (this.updateEntry.released_date) {
+          formData.append('released_date', this.updateEntry.released_date);
+        }
+
+        if (this.updateEntry.mmd_personnel) {
+          formData.append('mmd_personnel', this.updateEntry.mmd_personnel);
+        }
+
+      // Append the file if selected
+        // ✅ If new file uploaded
+        if (this.file) {
+          formData.append('MOVpdf', this.file);
+        }
+
+        // ✅ If delete checkbox checked
+        if (this.deleteMOV) {
+          formData.append('clear_MOVpdf', '1');
+        }
+
+    // Use PUT request for updating the entry
+    axios.post(`${API_BASE_URL}/api/MonitoringWPM/${this.updateEntry.ID}`, formData)
+      .then(response => {
+        // Find the index of the entry to be updated
+        const index = this.wpm.findIndex(entry => entry.ID === this.updateEntry.ID);
+
+        if (index !== -1) {
+          this.wpm[index] = response.data;
+        }
+
+        // Close the modal after successful update
+        this.file = null;        // ✅ reset file
+        this.deleteMOV = false;  // reset checkbox
+        this.closeModal();
+        alert('Entry updated successfully!');
+      })
+      .catch(error => {
+        console.error('Error adding entry:', error.response ? error.response.data : error.message);
+      });
+  },
   },
 
   mounted() {
     this.fetchWPM();
+    console.log('userRole:', this.userRole);
+    console.log('isMMD:', this.isMMD);
   }
 };
 </script>

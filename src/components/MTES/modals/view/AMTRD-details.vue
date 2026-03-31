@@ -164,7 +164,9 @@
             }
         },
         navigateToMandatoryReqAMTRD(detail_id) {
-            window.location.href = `/MandatoryRequirements/${detail_id}`;
+            this.$router.push({
+                path: `/MandatoryRequirements/${detail_id}`
+            });
         },
     }
   }

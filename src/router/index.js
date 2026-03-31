@@ -31,6 +31,8 @@ import PDFcontent from "../components/MLSS/pdf-content.vue";
 import firstpage from "../views/mtes/dashboard.vue";  
 import applicationpage from "../views/mtes/new-application.vue";
 import permitpage from "../views/mtes/permit.vue";
+import renewalpage from "../views/mtes/renewal.vue";
+
 
 // MTES Dashboards
 import fttadashboard from "../views/mtes/dashboards/FTAA-dashboard.vue";
@@ -59,7 +61,7 @@ import pie from "../components/MTES/charts/Pie.vue";
 import asViewer_landing_page from "../views/asViewer/asViewer_landing_page.vue";  
 import asViewer_dashboard from "../views/asViewer/v-dashboard.vue";  
 import asViewer_newapplication from "../views/asViewer/v-new-application.vue";
-import View_MandatoryRequirements from "../views/asChief/mandatoryReq.vue";
+
 import asViewer_amtrd from "../views/asViewer/dashboards/v-AMTRD-dashboard.vue";
 import asViewer_ftta from "../views/asViewer/dashboards/v-FTAA-dashboard.vue";
 import asViewer_ep from "../views/asViewer/dashboards/v-EP-dashboard.vue";
@@ -143,6 +145,7 @@ const routes = [
   { path: "/moep", component: moepddashboard, meta: { requiresAuth: true } },
   { path: "/factsheet", component: Factsheet, meta: { requiresAuth: true } },
   { path: "/MandatoryRequirements/:detail_id", component: MandatoryRequirements },
+{ path: "/Renewal/:detail_id", component: renewalpage },
   //MTES_asViewer
   { path: "/asViewer", component: asViewer_landing_page, meta: { requiresAuth: true } },
   { path: "/asViewer/mtes", component: asViewer_dashboard, meta: { requiresAuth: true } },
@@ -173,8 +176,8 @@ const routes = [
    { path: "/mmd/mtes/new-application/otp", component: asChief_otp, meta: { requiresAuth: true } },
    { path: "/mmd/mtes/new-application/ssmc", component: asChief_ssmc, meta: { requiresAuth: true } },
    { path: "/mmd/mtes/new-application/moep", component: asChief_moep, meta: { requiresAuth: true } },
-   { path: "/mmd/MandatoryRequirements/:detail_id", component: View_MandatoryRequirements },
-  
+   { path: "/mmd/MandatoryRequirements/:detail_id", component: MandatoryRequirements },
+{ path: "/mmd/Renewal/:detail_id", component: renewalpage },
 ];
 
 // Create router instance

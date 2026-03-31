@@ -28,7 +28,7 @@
         </div>
       </div>
       <div class="content-center">
-        <button @click="showModal = true" class="mr-4 bg-green-900 p-2 text-white font-bold rounded-lg">Add New Data</button>
+        <button v-if="!isMMD" @click="showModal = true" class="mr-4 bg-green-900 p-2 text-white font-bold rounded-lg">Add New Data</button>
       </div>
     </div>
 
@@ -56,7 +56,7 @@
               </span>
             </th>
             <th scope="col" class="px-6 py-3">Report</th>
-            <th scope="col" class="px-12 py-5 text-center">Action</th>
+            <th v-if="!isMMD" scope="col" class="px-12 py-5 text-center">Action</th>
           </tr>
           
         </thead>
@@ -72,8 +72,8 @@
               <button @click="openPDF(moep.reportPDF)" class="bg-red-500 text-white px-2 py-1 rounded">View</button>
             </td>
             <td class="px-6 py-4 flex justify-center">
-              <button @click="openUpdateModal(moep.id)" class="bg-grey-100 text-white px-2 py-1 rounded"><img src="../../assets/icons/edit.png" style="width: 25px;"></button>
-              <button @click="deleteEntry(moep.id)" class="bg-grey-100 text-white px-2 py-1 rounded "><img src="../../assets/icons/remove.png" style="width: 20px;"></button>
+              <button v-if="!isMMD" @click="openUpdateModal(moep.id)" class="bg-grey-100 text-white px-2 py-1 rounded"><img src="../../assets/icons/edit.png" style="width: 25px;"></button>
+              <button v-if="!isMMD" @click="deleteEntry(moep.id)" class="bg-grey-100 text-white px-2 py-1 rounded "><img src="../../assets/icons/remove.png" style="width: 20px;"></button>
             </td>
           </tr>
         </tbody>
@@ -85,83 +85,92 @@
     </div>
 
     <!-- Modal -->
-    <div v-if="showModal" class="fixed inset-0 flex items-center justify-center bg-gray-800 bg-opacity-75">
-      <div class="bg-white w-1/2 p-6 rounded-lg shadow-lg">
-        <form @submit.prevent="addNewEntry">
-          <div class="mb-4">
-            <label for="applicant" class="block text-sm font-medium text-gray-700">Applicant</label>
-            <input type="text" id="applicant"
-                   :value="formatInput(newEntry.applicant)"
-                   @input="updateEntry('applicant', $event.target.value)"
-                   class="p-1 mt-1 block w-full bg-orange-100 border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                   required>
-          </div>
+    <div v-if="showModal" class="fixed inset-0 overflow-y-auto">
+      <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+        <!-- Background overlay -->
+        <div class="fixed inset-0 transition-opacity" aria-hidden="true">
+          <div class="absolute inset-0 bg-gray-500 opacity-75"></div>
+        </div>
 
-          <div class="mb-4">
-            <label for="moep_no" class="block text-sm font-medium text-gray-700">MOEP No.</label>
-            <input type="text" id="moep_no"
-                   :value="formatInput(newEntry.moep_no)"
-                   @input="updateEntry('moep_no', $event.target.value)"
-                   class="p-1 mt-1 block w-full bg-orange-100 border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                   required>
-          </div>
+        <!-- Modal content -->
+        <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+        <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+          <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+            <div class="sm:flex sm:items-start">
+              <div class="mmt-2 space-y-3">
 
-          <div class="mb-4">
-            <label for="permit_no" class="block text-sm font-medium text-gray-700">Permit No.</label>
-            <input type="text" id="permit_no"
-                   :value="formatInput(newEntry.permit_no)"
-                   @input="updateEntry('permit_no', $event.target.value)"
-                   class="p-1 mt-1 block w-full bg-orange-100 border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                   required>
-          </div>
+                <div class="mt-2 flex items-center">
+                  <label class="w-48">
+                      Applicant:<span class="text-red-500">*</span>
+                  </label>
+                  <input v-model="newEntry.applicant" type="text" class="w-72 bg-orange-100 rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
+                </div>
+                <div class="mt-2 flex items-center">
+                  <label class="w-48">
+                      MOEP No.:<span class="text-red-500">*</span>
+                  </label>
+                  <input v-model="newEntry.moep_no" type="text" class="w-72 bg-orange-100 rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
+                </div>
+                <div class="mt-2 flex items-center">
+                  <label class="w-48">
+                      Permit No.:<span class="text-red-500">*</span>
+                  </label>
+                  <input v-model="newEntry.permit_no" type="text" class="w-72 bg-orange-100 rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
+                </div>
 
-          <div class="mb-4">
-            <label for="issued" class="block text-sm font-medium text-gray-700">Date of Issuance</label>
-            <input type="date" id="issued" v-model="newEntry.issued" class="p-1 mt-1 block w-full bg-orange-100 border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm" required>
+                <div class="mt-2 flex justify-between">
+                  <p class="mr-5">Date of Issuance<span class="text-red-500">*</span></p>
+                  <input v-model="newEntry.issued" type="date" class="pl-1 pr-1 bg-orange-100 rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
+                </div>
+                <div class="mt-2 flex justify-between">
+                  <p class="mr-5">Date of Validation<span class="text-red-500">*</span></p>
+                  <input v-model="newEntry.validated" type="date" class="pl-1 pr-1 bg-orange-100 rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
+                </div>
+                <div class="mt-2 flex justify-between">
+                  <p class="mr-5">MOV:</p>
+                  <input ref="reportPDF" type="file" accept="application/pdf" class="w-72 bg-orange-100 rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
+                </div>
+              </div>
+            </div>
           </div>
-
-          <div class="mb-4">
-            <label for="validated" class="block text-sm font-medium text-gray-700">Date of Validation</label>
-            <input type="date" id="validated" v-model="newEntry.validated" class="p-1 mt-1 block w-full bg-orange-100 border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm" required>
+          <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+            <button @click="showModal = false" type="button" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-red-600 text-base font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 sm:ml-3 sm:w-auto sm:text-sm">
+              Close
+            </button>
+            <!-- Add request button -->
+            <button @click="addNewEntry" type="button" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-green-600 text-base font-medium text-white hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 sm:ml-3 sm:w-auto sm:text-sm">
+              Add
+            </button>
           </div>
-
-          <div class="mb-4">
-            <label for="reportPDF" class="block text-sm font-medium text-gray-700">Report (.pdf)</label>
-            <input type="file" id="reportPDF" ref="reportPDF" class="p-1 mt-1 block w-full bg-orange-100 border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm" required>
-          </div>
-
-          <div class="flex justify-end">
-            <button type="button" @click="showModal = false" class="bg-red-500 text-white px-4 py-2 rounded mr-2">Cancel</button>
-            <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded">Add Entry</button>
-          </div>
-        </form>
+        </div>
       </div>
     </div>
 
     <!-- Update Modal -->
     <div v-if="isUpdateModalOpen" class="fixed inset-0 overflow-y-auto" aria-modal="true" role="dialog">
       <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-
+        <!-- Background overlay -->
         <div class="fixed inset-0 transition-opacity" aria-hidden="true">
           <div class="absolute inset-0 bg-gray-500 opacity-75"></div>
         </div>
 
+        <!-- Modal content -->
         <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
-        <form @submit.prevent="handleUpdate" class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-xl sm:w-full">
-          <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+        <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+          <form @submit.prevent="handleUpdate" class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
             <div class="sm:flex sm:items-start">
               <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
-                <div class="mt-2 flex justify-between">
-                  <p class="mr-5">Applicant:</p>
-                  <input v-model="updateEntry.applicant" type="text" class="w-72 bg-orange-100 rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
+                <div class="mt-2 flex flex-col">
+                  <label for="text_field" class="text-gray-700">Applicant:</label>
+                  <textarea v-model="updateEntry.applicant" id="text_field" rows="4" class="w-full bg-orange-100 rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"></textarea>
                 </div>
-                <div class="mt-2 flex justify-between">
-                  <p class="mr-5">MOEP No.:</p>
-                  <input v-model="updateEntry.moep_no" type="text" class="w-72 bg-orange-100 rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
+                <div class="mt-2 flex flex-col">
+                  <label for="text_field" class="text-gray-700">MOEP No.</label>
+                  <textarea v-model="updateEntry.moep_no" id="text_field" rows="4" class="w-full bg-orange-100 rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"></textarea>
                 </div>
-                <div class="mt-2 flex justify-between">
-                  <p class="mr-5">Permit No.:</p>
-                  <input v-model="updateEntry.permit_no" type="text" class="w-72 bg-orange-100 rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
+                <div class="mt-2 flex flex-col">
+                  <label for="text_field" class="text-gray-700">Permit No.</label>
+                  <textarea v-model="updateEntry.permit_no" id="text_field" rows="4" class="w-full bg-orange-100 rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"></textarea>
                 </div>
                 <div class="mt-2 flex justify-between">
                   <p class="mr-5">Date of Issuance:</p>
@@ -172,24 +181,29 @@
                   <input v-model="updateEntry.validated" type="date" class="pl-1 pr-1 bg-orange-100 rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
                 </div>
                 <div class="mt-2 flex justify-between">
-                  <p class="mr-5">Report (.pdf):</p>
+                  <p class="mr-5">MOV:</p>
                   <input ref="reportPDF" type="file" accept="application/pdf" @change="handleFileUpload" class="w-72 bg-orange-100 rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
                 </div>
+                  <!-- Delete checkbox -->
+              <div v-if="updateEntry.reportPDF" class="mt-2 flex items-center">
+                <input type="checkbox" v-model="deleteReport" class="mr-2">
+                <label>Delete existing attachment</label>
+              </div>
               </div>
             </div>
-          </div>
-          <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
-            <button @click="closeModal" type="button" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-red-600 text-base font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 sm:ml-3 sm:w-auto sm:text-sm">
-              Close
-            </button>
-            <button type="submit" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-green-600 text-base font-medium text-white hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 sm:ml-3 sm:w-auto sm:text-sm">
-              Update
-            </button>
+            <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+              <button @click="closeModal" type="button" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-red-600 text-base font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 sm:ml-3 sm:w-auto sm:text-sm">
+                Close
+              </button>
+              <button type="submit" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-green-600 text-base font-medium text-white hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 sm:ml-3 sm:w-auto sm:text-sm">
+                Update
+              </button>
           </div>
         </form>
       </div>
     </div>
   </div>
+</div>
 </template>
 
 <script>
@@ -215,11 +229,17 @@ export default {
       isUpdateModalOpen: false,
       updateEntry: this.getEmptyEntry(),
       file: null,
+      userRole: localStorage.getItem('userRole') || '', // Store user role for reactivity
+      deleteReport: false,
     };
   },
   computed: {
     filteredMOEP() {
       return this.getFilteredAndSortedData();
+    },
+
+    isMMD() {
+            return this.userRole === 'mmd';
     },
   },
   methods: {
@@ -249,34 +269,48 @@ export default {
           console.error('Error fetching MOEP:', error);
         });
     },
+
     addNewEntry() {
+      // Client-side validation for required fields
+      const requiredFields = ['applicant', 'moep_no', 'permit_no', 'issued','validated'];
+      for (const field of requiredFields) {
+        if (!this.newEntry[field]) {
+          alert(`The field "${field.replace(/_/g, ' ')}" is required.`);
+          return;
+        }
+      }
+
       const fileInput = this.$refs.reportPDF.files[0];
-    if (fileInput && fileInput.size > 10 * 1024 * 1024) { // 10MB limit
-      alert('File size exceeds 10MB.');
-      return;
-    }
+      if (fileInput && fileInput.size > 10 * 1024 * 1024) { // 10MB limit
+        alert('File size exceeds 10MB.');
+        return;
+      }
 
-  const formData = new FormData();
-  formData.append('applicant', this.newEntry.applicant);
-  formData.append('moep_no', this.newEntry.moep_no);
-  formData.append('permit_no', this.newEntry.permit_no);
-  formData.append('issued', this.newEntry.issued);
-  formData.append('validated', this.newEntry.validated);
-  formData.append('reportPDF', fileInput);
+      const formData = new FormData();
+      formData.append('applicant', this.newEntry.applicant);
+      formData.append('moep_no', this.newEntry.moep_no);
+      formData.append('permit_no', this.newEntry.permit_no);
+      formData.append('issued', this.newEntry.issued);
+      formData.append('validated', this.newEntry.validated);
 
-  axios.post(`${API_BASE_URL}/api/MOEP`, formData, { 
-    headers: {
-      'Content-Type': 'multipart/form-data'
-    }
-  })
-  .then(response => {
-    this.moep.push(response.data);
-    this.clearNewEntry();
-  })
-  .catch(error => {
-    console.error('Error adding entry:', error.response ? error.response.data : error.message);
-  });
-},
+      if (fileInput) {
+        formData.append('reportPDF', fileInput);
+      }
+
+      axios.post(`${API_BASE_URL}/api/MOEP`, formData, { 
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      })
+      .then(response => {
+        this.moep.push(response.data);
+        this.clearNewEntry();
+      })
+      .catch(error => {
+        console.error('Error adding entry:', error.response ? error.response.data : error.message);
+      });
+    },
+
     clearNewEntry() {
       this.newEntry = this.getEmptyEntry();
       this.showModal = false;
@@ -315,19 +349,19 @@ export default {
       return filtered;
     },
     openPDF(pdfPath) {
-      const index = pdfPath.indexOf('/');
-      const pdfFinalPath = pdfPath.slice(index + 1);
-      const url = `${API_BASE_URL}/storage/${pdfFinalPath}`; // @@@@@@@@@@@@@@@@@@@@
-      if (pdfPath) {
-        window.open(url, '_blank');
-      } else {
-        console.error('PDF URL not found');
+      if (!pdfPath) {
+        alert('No attachment available.');
+        return;
       }
+
+      const url = `${API_BASE_URL}/storage/${pdfPath}`;
+      window.open(url, '_blank');
     },
     openUpdateModal(entryId) {
       const entry = this.moep.find(e => e.id === entryId);
       if (entry) {
         this.updateEntry = { ...entry };
+        this.deleteReport = false;
         this.isUpdateModalOpen = true;
       } else {
         console.error(`Entry with id ${entryId} not found.`);
@@ -343,6 +377,16 @@ export default {
       this.file = event.target.files[0];
     },
     handleUpdate() {
+
+      // Client-side validation for required fields
+      const requiredFields = ['applicant', 'moep_no', 'permit_no', 'issued','validated'];
+      for (const field of requiredFields) {
+        if (!this.updateEntry[field]) {
+          alert(`The field "${field.replace(/_/g, ' ')}" is required.`);
+          return;
+        }
+      }
+
       if (this.file && this.file.size > 10 * 1024 * 1024) {
         alert('File size exceeds 10MB.');
         return;
@@ -362,9 +406,15 @@ export default {
       formData.append('issued', this.updateEntry.issued);
       formData.append('validated', this.updateEntry.validated);
 
-      if (this.file) {
-        formData.append('reportPDF', this.file);
-      }
+        // ✅ If new file uploaded
+        if (this.file) {
+          formData.append('reportPDF', this.file);
+        }
+
+        // ✅ If delete checkbox checked
+        if (this.deleteReport) {
+          formData.append('deleteReport', '1');
+        }
 
       axios.post(`${API_BASE_URL}/api/MOEP/${this.updateEntry.id}`, formData)
         .then(response => {
@@ -376,8 +426,7 @@ export default {
           alert('Entry updated successfully!');
         })
         .catch(error => {
-          console.error('Error updating entry:', error);
-          alert('Failed to update the entry.');
+          console.error('Error adding entry:', error.response ? error.response.data : error.message);
         });
     },
     deleteEntry(id) {
@@ -397,6 +446,8 @@ export default {
   },
   mounted() {
     this.fetchMOEP();
+    console.log('userRole:', this.userRole);
+    console.log('isMMD:', this.isMMD);
   },
 };
 </script>
